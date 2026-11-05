@@ -15,7 +15,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 from listening import send_mail
 from email_layout import render as render_email, plain as plain_email
-from performance import assess as assess_performance, choose as choose_performers, evidence, adaptation as adaptation_for_diagnostics
+from performance import assess_public_linkedin, assess as assess_performance, choose as choose_performers, evidence, adaptation as adaptation_for_diagnostics
 from editorial import prepare as prepare_editorial, record as record_editorial
 from linkedin_public import collect as collect_linkedin, render_section as render_linkedin, select_posts as select_linkedin
 
@@ -146,8 +146,8 @@ def main():
     assess_performance(rows,history,config.get('performance',{}))
     linkedin_baseline = {r['id']:r for r in linkedin.get('baseline_rows',[])}
     linkedin_baseline.update({r['id']:r for r in linkedin_raw})
-    assess_performance(list(linkedin_baseline.values()),history,config.get('performance',{}))
-    linkedin['items'] = choose_performers(linkedin_raw,config.get('linkedin',{}).get('max_report_posts',3))
+    assess_public_linkedin(list(linkedin_baseline.values()),config.get('performance',{}))
+    linkedin['items'] = choose_performers(linkedin_raw,config.get('linkedin',{}).get('max_report_posts',3),max_per_account=1)
     linkedin.pop('baseline_rows',None)
     linkedin['checked_posts']=len(linkedin_raw)
     linkedin['qualified_posts']=sum(r.get('top_performer',False) for r in linkedin_raw)

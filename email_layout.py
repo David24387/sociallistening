@@ -32,6 +32,8 @@ def number(value):
 def proof(row):
     factor=str(row.get('benchmark_factor','?')).replace('.',',')
     n=row.get('benchmark_n',0)
+    if row.get('public_profile_sample'):
+        return f'{factor}× der mittlere Interaktionswert (Median) von {n} anderen öffentlich sichtbaren Posts dieses Accounts. Vergleich: {row.get("benchmark_scope","verschiedene Formate")}. Begrenzter Profil-Ausschnitt mit unterschiedlichem Beitragsalter; keine vollständige Account-Analyse.'
     text=f'{factor}× so viele Interaktionen wie ein typischer Beitrag dieses Accounts. Vergleich: {n} andere Beiträge desselben Formats (Median).'
     if '48–72' in row.get('benchmark_mode',''):
         text+=' Vergleich bei ähnlichem Beitragsalter.'
@@ -50,7 +52,7 @@ def card(row,index):
     platform=row['platform'];account=row['account']
     form={'IMAGE':'Bildpost','VIDEO':'Video','CAROUSEL_ALBUM':'Karussell','TEXT':'Textbeitrag'}.get(row.get('format'),'Beitrag')
     source=account if platform=='LinkedIn' else '@'+account
-    badge='Besonders stark' if row.get('performance_tier')=='Deutlicher Ausreißer' else 'Überdurchschnittlich'
+    badge='Stark im sichtbaren Profil-Ausschnitt' if row.get('public_profile_sample') else 'Besonders stark' if row.get('performance_tier')=='Deutlicher Ausreißer' else 'Überdurchschnittlich'
     age='Best of 30 Tage' if row.get('age_hours',0)>168 else 'Aus den letzten 7 Tagen'
     if row.get('inspiration'):age+=' · Branchenfremde Inspiration'
     caption=tidy(row.get('caption',''),240)

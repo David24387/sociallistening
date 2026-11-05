@@ -65,11 +65,15 @@ def adaptation(row):
     """Grounded caption/format patterns; no claim to have watched the video."""
     text=row.get('caption','').lower()
     if GIVEAWAY.search(text):return None
+    if re.search(r'datenschutzkonferenz|financial results|finanzergebnisse|quartalsergebnisse|hauptversammlung|strategic plan',text):return None
     rules=[
+        (bool(re.search(r'award|auszeichnung|bronze|goldmedaille|silbermedaille',text)) and any(word in text for word in ('pannen','werkstatt','service')), 'Besondere Serviceleistung zeigen', 'Einen echten Euromaster-Panneneinsatz als Dreischritt erzählen: Welche Herausforderung gab es, wie hat das Team gehandelt und welches Ergebnis hatte der Kunde? Die fachliche Leistung mit konkreten Fakten belegen; keine fremde Auszeichnung übernehmen.'),
+        (bool(re.search(r'award|auszeichnung',text)), 'Anerkennung mit konkreter Leistung verbinden', 'Eine echte Auszeichnung oder belegbares Kundenlob für ein Euromaster-Team zum Anlass nehmen: Leistung und beteiligte Kolleginnen und Kollegen zeigen, statt nur einen Pokal zu posten.'),
+        (bool(re.search(r'steckbrief|teamvorstellung|azubi|ausbildung|karriere|adacjobs|mitarbeitende|mitarbeiter',text)), 'Menschen und Aufgaben sichtbar machen', 'Eine Euromaster-Fachkraft in einem kurzen Porträt vorstellen: ihre konkrete Aufgabe, eine typische Kundenfrage und was ihr am Werkstattalltag gefällt. Als eigene Recruiting-Serie mit echten Kolleginnen und Kollegen umsetzen.'),
         (bool(re.search(r'irrt[uü]m|myth|wusstest|stimmt das|falsch gedacht',text)), 'Mythos oder Wissenslücke', '„Müssen Reifen immer paarweise ersetzt werden?“ als fachlich geprüftes Expertenformat: Frage, Erklärung am Reifen, Beratungshinweis.'),
         (bool(re.search(r'fehler|nicht machen|vermeiden|niemals',text)), 'Fehler vermeiden', '„Drei Fehler bei der Reifenlagerung“: pro Fehler eine konkrete Erklärung und eine richtige Vorgehensweise aus dem Werkstattalltag.'),
         ('vorher' in text and 'nachher' in text, 'Vorher–nachher', 'Einen echten Autoglas-Auftrag vor und nach dem Austausch zeigen; dazu kurz erklären, welche Arbeitsschritte und Prüfungen erforderlich waren.'),
-        (bool(re.search(r'kosten|teuer|sparen|preis',text)), 'Kosten verständlich machen', '„Was gehört eigentlich zum Reifenservice?“ als transparente Leistungsübersicht mit echten Arbeitsschritten statt eines isolierten Preisversprechens.'),
+        (bool(re.search(r'kosten|teuer|sparen|preisvergleich|preistransparenz',text)), 'Kosten verständlich machen', '„Was gehört eigentlich zum Reifenservice?“ als transparente Leistungsübersicht mit echten Arbeitsschritten statt eines isolierten Preisversprechens.'),
         (bool(re.search(r'schritt|anleitung|tipps|so geht|checkliste',text)), 'Praktische Anleitung', '„Reifencheck vor der nächsten Fahrt“ als kurze Schrittfolge: Zustand ansehen, Luftdruck nach Fahrzeugvorgabe prüfen, bei Auffälligkeiten Fachbetrieb kontaktieren.'),
         (row.get('format')=='CAROUSEL_ALBUM', 'Karussellstruktur (Format nachgewiesen, Bildinhalt ungeprüft)', 'Eine eigene Wissensserie „Was Ihr Reifen verrät“: auffälliges Verschleißbild, mögliche Ursachen und nächster Prüfschritt. Die konkrete Bilddramaturgie des Originals vor Umsetzung manuell prüfen.')
     ]
@@ -100,4 +104,39 @@ def choose(rows,limit=5,max_inspiration=2,max_per_account=2):
     return selected
 
 def evidence(row):
+    if row.get('public_profile_sample'):
+        return f"{row['benchmark_factor']}× Median der {row['benchmark_n']} anderen öffentlich sichtbaren Account-Posts; {row.get('benchmark_scope','verschiedene Formate')}. Begrenzter Profil-Ausschnitt mit unterschiedlichem Beitragsalter, keine vollständige Account-Analyse."
     return f"{row.get('performance_tier','Starker Beitrag')}: {row['benchmark_factor']}× Account-Median ({row['benchmark_median']:g}); mindestens so viele Interaktionen wie {row['benchmark_percentile']} % der {row['benchmark_n']} Vergleichsposts desselben Formats. Vergleichswert dieses Posts: {row['performance_interactions']}. {row.get('benchmark_confidence','')}. Modus: {row['benchmark_mode']}."
+
+
+def assess_public_linkedin(rows,settings=None):
+    """Rank within the public profile excerpt, never pretend full analytics/age control."""
+    settings=settings or {};minimum=settings.get('min_peers',5)
+    for row in rows:
+        row.update(top_performer=False,performance_reason='',benchmark_n=0,benchmark_median=None,benchmark_factor=None,benchmark_percentile=None,public_profile_sample=True)
+        if row.get('interactions') is None:
+            row['performance_reason']='Interaktionen unvollständig';continue
+        if not settings.get('min_age_hours',24)<=row['age_hours']<=settings.get('max_age_hours',720):
+            row['performance_reason']='Außerhalb des Messfensters von 1–30 Tagen';continue
+        if GIVEAWAY.search(row.get('caption','')):
+            row['performance_reason']='Gewinnspiel/Verlosung ausgeschlossen';continue
+        pool=[p for p in rows if p['id']!=row['id'] and p['account']==row['account'] and p.get('interactions') is not None and 24<=p['age_hours']<=2160 and not GIVEAWAY.search(p.get('caption',''))]
+        same=[p for p in pool if p['format']==row['format'] and row['format'] not in ('UNKNOWN','POST')]
+        peers=same if len(same)>=minimum else pool
+        scope='gleiches Format' if peers is same else 'verschiedene Formate'
+        values=[p['interactions'] for p in peers]
+        row.update(benchmark_n=len(values),benchmark_scope=scope,benchmark_mode='Öffentlich sichtbarer Profil-Ausschnitt; unterschiedliche Beitragsalter',performance_interactions=row['interactions'])
+        if len(values)<minimum:
+            row['performance_reason']=f'Zu wenig öffentliche Vergleichsposts ({len(values)}/{minimum})';continue
+        median=statistics.median(values)
+        if median<=0:
+            row['performance_reason']='Kein belastbarer Medianwert';continue
+        own=row['interactions'];factor=own/median
+        percentile=100*sum(v<=own for v in values)/len(values)
+        cutoff=sorted(values)[max(0,math.ceil(settings.get('min_percentile',80)/100*len(values))-1)]
+        row.update(benchmark_median=median,benchmark_factor=round(factor,2),benchmark_percentile=round(percentile),benchmark_p90=cutoff)
+        row['top_performer']=own>=settings.get('min_interactions',50) and factor>=settings.get('min_factor',1.5) and own>=cutoff
+        row['performance_tier']='Stark im sichtbaren LinkedIn-Ausschnitt' if row['top_performer'] else 'Nicht qualifiziert'
+        row['benchmark_confidence']='Begrenzter öffentlicher Ausschnitt; '+scope+', keine Altersbereinigung'
+        row['performance_reason']='Starke Resonanz im öffentlichen Profil-Ausschnitt' if row['top_performer'] else 'Resonanz nicht ausreichend über dem öffentlichen Profilvergleich'
+    return rows

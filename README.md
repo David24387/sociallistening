@@ -8,12 +8,12 @@ Alle Bedingungen müssen gleichzeitig erfüllt sein:
 
 - Beitrag 24 Stunden bis 30 Tage alt; bis 7 Tage als aktuell, darüber als Best of 30 Tage gekennzeichnet.
 - Vollständige sichtbare Interaktionen (Likes/Reaktionen + Kommentare), mindestens 50.
-- Mindestens 5 andere Vergleichsposts desselben Accounts und erfassten Formats; Kandidat ausgeschlossen.
+- Mindestens 5 andere Vergleichsposts desselben Accounts; Kandidat ausgeschlossen. Instagram: gleiches Format. LinkedIn: gleiches Format, wenn mindestens 5 Vergleichsposts vorliegen, sonst formatübergreifender öffentlicher Account-Ausschnitt mit ausdrücklicher Kennzeichnung.
 - Stark im Accountvergleich: mindestens 1,5× Median dieser Vergleichsposts und mindestens das 80. Perzentil der Vergleichsstichprobe. Deutlicher Ausreißer: zusätzlich mindestens 2× Median, oberhalb von mindestens 90 % der Vergleichsposts und mindestens 100 Interaktionen. Vergleichsgruppen mit nur 5–7 Posts werden als kleinere Basis gekennzeichnet.
 - Keine erkennbaren Gewinnspiele/Verlosungen und kein unbekanntes Format.
 - Konkreter Euromaster-Transfer aus Caption oder Format ableitbar.
 
-Wenn genügend Historie existiert, werden Messungen im Alter von 48–72 Stunden verglichen. Andernfalls verwenden wir Gesamtinteraktionen von Vergleichsposts, die bei ihrer Messung mindestens ebenso alt waren wie der Kandidat und höchstens 90 Tage alt sind. Das ist ein konservativer Ersatz, kein exakt altersbereinigter Test. Vergleichsmodus, Stichprobengröße, Median, Faktor und Zähler des Kandidaten stehen bei jedem ausgewählten Post.
+**Instagram:** Wenn genügend Historie existiert, werden Messungen im Alter von 48–72 Stunden verglichen. Andernfalls verwenden wir Gesamtinteraktionen von Vergleichsposts, die bei ihrer Messung mindestens ebenso alt waren wie der Kandidat und höchstens 90 Tage alt sind. Das ist ein konservativer Ersatz, kein exakt altersbereinigter Test. Vergleichsmodus, Stichprobengröße, Median, Faktor und Zähler des Kandidaten stehen bei jedem ausgewählten Post.
 
 Die Regeln identifizieren redaktionell definierte Ausreißer, keinen statistisch bewiesenen oder kausalen Erfolg. Reichweite, Views, Saves, Shares, Paid-Einsatz und Conversion sind unbekannt. Öffentliche LinkedIn-Metadaten können verzögert oder unvollständig sein. Eine hohe Reaktionszahl kann auch Kritik widerspiegeln. Vor eigener Umsetzung das Original ansehen und Tonalität/Inhalt prüfen. Die Followerquote ist keine Reichweiten-Engagementrate.
 
@@ -75,3 +75,13 @@ Im geprüften Lauf vom 05.11.2026 waren 5 Instagram- und 0 LinkedIn-Posts ausgew
 Der Abruf liest nun bis zu 10 öffentliche Beitragslinks pro Unternehmensseite. Solange Quellen mit mindestens 5 bekannten Links weniger als 8 ausgelesene Postdatensätze mit Kennzahlen haben, wird ein größerer Abruf mit bis zu 60 Einzelposts versucht; danach bis zu 30. Das erweitert die reale Vergleichsbasis, nicht die Performance-Schwellen. Einmalige Startlinks erzwingen keinen dauerhaften Basisausbau. Weiterhin maximal 8 Unternehmensseiten, kein Umgehen von Zugangssperren. Workflow-Limit auf 30 Minuten erhöht, damit Timeouts einzelner Quellen den Basisaufbau nicht vorzeitig abbrechen.
 
 Die Mail zeigt bei fehlenden LinkedIn-Empfehlungen jetzt kurz „LinkedIn heute“ mit der Anzahl geprüfter Posts. Fehlende Vergleichsdaten und nicht erreichbare Beitragsdaten werden unterschiedlich erklärt. Kein künstlicher LinkedIn-Mindestanteil. Der nächste Live-Lauf muss bestätigen, wie viele zusätzliche Postdaten erreichbar sind und ob Beiträge anschließend die unveränderten Qualitätsschwellen erfüllen.
+
+## LinkedIn: Vergleichsregel an den öffentlichen Ausschnitt angepasst
+
+Der erweiterte Lauf las 59 LinkedIn-Posts, aber die frühere Forderung nach mindestens 5 älteren Posts desselben Formats war bei ungefähr 10 sichtbaren Posts pro Unternehmensseite strukturell häufig unerfüllbar. Mehr Abrufe allein lösten das nicht.
+
+Für LinkedIn wird jetzt ausschließlich eine Momentaufnahme des sichtbaren Profil-Ausschnitts bewertet: mindestens 5 andere Account-Posts mit Kennzahlen aus den letzten 90 Tagen, mindestens 1,5× Median, oberste 20 % des Ausschnitts und mindestens 50 Interaktionen. Wenn mindestens 5 Posts desselben Formats vorliegen, werden diese bevorzugt; sonst formatübergreifend mit ausdrücklichem Hinweis. Es erfolgt keine Altersbereinigung und keine Behauptung vollständiger Account-Analytics. Kandidaten weiterhin höchstens 30 Tage alt. Keine erzwungene Quote. Maximal ein LinkedIn-Post pro Account in einer Mail.
+
+Nachrechnung der Kennzahlen aus dem echten 59-Post-Lauf ergab passende Kandidaten. Mit den tatsächlich gelesenen Original-Captions wurden ATU (4× Median), ADAC (3,69×) und ÖAMTC (2,55×) als 3 übertragbare Empfehlungen bis in die Mail-Vorlage geprüft. Das ist eine Nachrechnung desselben Snapshots, keine Bestätigung eines neuen automatischen Mailversands. Der nächste Live-Lauf nutzt die neue Regel.
+
+Übertragungsregeln unterscheiden nun echte Team-/Karriereporträts, besondere Serviceleistungen und Auszeichnungen. Das Wort „Preis“ allein löst keine Kosten-/Sparidee mehr aus. Datenschutzkonferenzen und Finanz-/Strategieberichte werden nicht künstlich mit Automotive-Ideen versehen. Ideen bleiben Vorschläge aus Text und Format ohne automatische Bild-/Videoanalyse.

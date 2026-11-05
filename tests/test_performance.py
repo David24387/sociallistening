@@ -71,3 +71,42 @@ class PracticalWindowTests(unittest.TestCase):
     def test_post_after_thirty_days_excluded(self):
         rows=[post('too_old',1000,750)]+[post(i,100,800+i) for i in range(8)]
         assess(rows);self.assertFalse(rows[0]['top_performer'])
+
+class PublicLinkedInTests(unittest.TestCase):
+    def test_actual_atu_snapshot_qualifies_with_honest_scope(self):
+        from performance import assess_public_linkedin
+        rows=[post('atu',60,50,account='ATU',fmt='CAROUSEL_ALBUM',caption='Teamvorstellung: unsere Mitarbeitenden')]
+        metrics=[11,10,20,37,12,10,15,29,27]
+        for i,value in enumerate(metrics):
+            rows.append(post(i,value,70+i,account='ATU',fmt='CAROUSEL_ALBUM' if i<3 else 'IMAGE'))
+        assess_public_linkedin(rows)
+        self.assertTrue(rows[0]['top_performer'])
+        self.assertEqual(rows[0]['benchmark_factor'],4)
+        self.assertEqual(rows[0]['benchmark_scope'],'verschiedene Formate')
+        self.assertTrue(rows[0]['public_profile_sample'])
+        self.assertIn('Menschen',choose(rows)[0]['adaptation']['pattern'])
+    def test_same_format_preferred_when_sample_sufficient(self):
+        from performance import assess_public_linkedin
+        rows=sample(300);assess_public_linkedin(rows)
+        self.assertEqual(rows[0]['benchmark_scope'],'gleiches Format')
+    def test_no_forced_linkedin_quota_or_cross_account_baseline(self):
+        from performance import assess_public_linkedin
+        rows=sample(120);assess_public_linkedin(rows)
+        self.assertFalse(rows[0]['top_performer'])
+        rows=sample(peers=4);assess_public_linkedin(rows)
+        self.assertFalse(rows[0]['top_performer'])
+    def test_financial_and_privacy_posts_not_forced_into_transfer(self):
+        from performance import adaptation
+        self.assertIsNone(adaptation(post('x',300,caption='Financial results: unsere Quartalsergebnisse')))
+        self.assertIsNone(adaptation(post('x',300,caption='Datenschutzkonferenz und neue Pannenhilfe-Daten')))
+
+class TransferMeaningTests(unittest.TestCase):
+    def test_hr_award_not_misread_as_price_saving(self):
+        from performance import adaptation
+        result=adaptation(post('x',300,caption='Wir freuen uns über einen HR Inside Award. Ein toller Preis für das Team.'))
+        self.assertNotIn('Kosten',result['pattern'])
+        self.assertIn('Leistung',result['pattern'])
+    def test_roadside_award_gets_service_case_transfer(self):
+        from performance import adaptation
+        result=adaptation(post('x',300,caption='Bronze für unsere Pannenhilfe! Die Serviceleistung war hervorragend.'))
+        self.assertIn('Panneneinsatz',result['idea'])

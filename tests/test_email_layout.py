@@ -81,3 +81,13 @@ class LinkedInStatusTests(unittest.TestCase):
     def test_zero_access_not_presented_as_no_good_posts(self):
         d=report();d['linkedin']['items']=[];d['linkedin']['checked_posts']=0
         self.assertIn('keine auswertbaren LinkedIn-Beiträge erreichbar',render(d))
+
+class PublicLinkedInExplanationTests(unittest.TestCase):
+    def test_mixed_format_sample_not_called_same_format_or_age_matched(self):
+        from email_layout import proof
+        r=post('li');r.update(public_profile_sample=True,benchmark_scope='verschiedene Formate')
+        result=proof(r)
+        self.assertIn('öffentlich sichtbaren',result)
+        self.assertIn('unterschiedlichem Beitragsalter',result)
+        self.assertNotIn('desselben Formats',result)
+        self.assertNotIn('mindestens ebenso alt',result)
