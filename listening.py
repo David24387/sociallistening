@@ -20,6 +20,8 @@ PLATFORMS = {'instagram.com': ('/p/', '/reel/'), 'linkedin.com': ('/posts/', '/f
 def canonical(url):
     p = urllib.parse.urlsplit(url)
     host = (p.hostname or '').lower().removeprefix('www.').removeprefix('m.')
+    if host in ('de.linkedin.com', 'at.linkedin.com', 'uk.linkedin.com'):
+        host = 'linkedin.com'
     if p.scheme != 'https' or host not in PLATFORMS:
         return None
     if not any(part in p.path for part in PLATFORMS[host]):
@@ -51,19 +53,24 @@ def discover(config, day):
     queries += [f'site:{host} {topic}' for topic in config['topics'] for host in PLATFORMS]
     # Include topic discovery before remaining brand queries.
     queries = queries[:9] + queries[-len(config['topics'])*3:] + queries[9:-len(config['topics'])*3]
-    found, errors = {}, []
+    found, errors, diagnostics = {}, [], []
     for query in queries[:config.get('max_queries', 18)]:
         endpoint = 'https://www.bing.com/search?' + urllib.parse.urlencode({'q': query, 'format': 'rss', 'count': 10})
         try:
             req = urllib.request.Request(endpoint, headers={'User-Agent': 'EuromasterContentDiscovery/0.1'})
             with urllib.request.urlopen(req, timeout=25) as response:
-                rows = parse_feed(response.read(2_000_000))
+                data = response.read(2_000_000)
+                rows = parse_feed(data)
+                raw = ET.fromstring(data).findall('./channel/item')
+                diagnostics.append({'query': query, 'raw_count': len(raw), 'post_count': len(rows), 'rejected_links': [item.findtext('link', '') for item in raw if not canonical(item.findtext('link', ''))][:5]})
             for row in rows:
                 row['query'] = query
                 found.setdefault(row['url'], row)
         except Exception as exc:
             errors.append({'query': query, 'error': type(exc).__name__ + ': ' + str(exc)[:180]})
         time.sleep(1)
+    Path('reports').mkdir(exist_ok=True)
+    Path('reports/diagnostics.json').write_text(json.dumps(diagnostics, ensure_ascii=False, indent=2), encoding='utf-8')
     return list(found.values()), errors
 
 IDEAS = [
@@ -119,6 +126,15 @@ def main():
     rendered = render(report)
     (output / 'index.html').write_text(rendered)
     (output / 'latest.json').write_text(json.dumps(report, ensure_ascii=False, indent=2))
+    summary = os.environ.get('GITHUB_STEP_SUMMARY')
+    if summary:
+        with open(summary, 'a', encoding='utf-8') as handle:
+            handle.write(f'## Content-Recherche\n\n{len(rows)} passende Beiträge, {len(items)} neue Einträge, {len(errors)} Quellenfehler.\n\n')
+            if not rows:
+                handle.write('⚠️ **Recherche ohne brauchbare Treffer.** Dieser Lauf liefert keine Content-Auswertung. Im Artifact liegen HTML-Report und diagnostics.json mit verworfenen Suchtreffern.\n\n')
+            handle.write('Geprüfte Startbeispiele: [BEISPIELE.md](https://github.com/David24387/sociallistening/blob/main/BEISPIELE.md). Diese sind manuell recherchiert und keine täglichen Funde.\n')
+    if not rows:
+        print('::warning::Keine passenden Social-Beiträge gefunden. Recherche ist nicht als funktionsfähig bestätigt; diagnostics.json prüfen.')
     if args.send:
         send_mail(rendered, report['date'])
     # Only delivered report entries are suppressed next time; excess discoveries remain eligible.

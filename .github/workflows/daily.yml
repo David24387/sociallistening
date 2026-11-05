@@ -37,6 +37,7 @@ jobs:
           name: content-report-${{ github.run_id }}
           path: reports/
           retention-days: 30
+          if-no-files-found: error
       - uses: actions/cache/save@v4
         with:
           path: state

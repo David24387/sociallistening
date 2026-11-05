@@ -6,6 +6,9 @@ class Tests(unittest.TestCase):
         self.assertIsNone(canonical('https://instagram.com.evil.test/p/123'))
         self.assertEqual(canonical('https://www.instagram.com/p/abc/?utm_source=x'), 'https://instagram.com/p/abc')
         self.assertNotEqual(canonical('https://facebook.com/watch/?v=123'),canonical('https://facebook.com/watch/?v=456'))
+    def test_localized_linkedin(self):
+        self.assertEqual(canonical('https://de.linkedin.com/posts/adac-test'), 'https://linkedin.com/posts/adac-test')
+        self.assertIsNone(canonical('https://evil.linkedin.com/posts/test'))
     def test_feed(self):
         rows=parse_feed(b'<rss><channel><item><title>Reifen</title><link>https://linkedin.com/posts/test</link></item><item><link>https://example.com/article</link></item></channel></rss>')
         self.assertEqual(len(rows),1)
