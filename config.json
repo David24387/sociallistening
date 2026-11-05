@@ -34,15 +34,18 @@
     "enabled": true,
     "company_pages": [
       "https://www.linkedin.com/company/adac/",
-      "https://www.linkedin.com/company/oeamtc/",
-      "https://www.linkedin.com/company/vergoelst/"
+      "https://www.linkedin.com/company/-amtc/",
+      "https://www.linkedin.com/company/verg%C3%B6lst/",
+      "https://www.linkedin.com/company/a.t.u-auto-teile-unger-handels-gmbh-%26-co.-kg/",
+      "https://www.linkedin.com/company/carglass-germany/",
+      "https://www.linkedin.com/company/ayvens/"
     ],
     "seed_posts": [
       "https://de.linkedin.com/posts/adac_adac-reifentest-verkehrssicherheit-activity-7516099754896908289--8kH",
       "https://de.linkedin.com/posts/ayvens_ayvensdeutschland-fuhrparkmanagement-reifenmanagement-activity-7515669038346313729-tTsr",
       "https://de.linkedin.com/posts/eugen-maile-851907130_gestern-7-uhr-ich-hab-gestern-meine-reifen-activity-7519350244342390784-_dmF"
     ],
-    "max_posts_per_run": 8,
-    "max_report_posts": 6
+    "max_posts_per_run": 12,
+    "max_report_posts": 8
   }
 }

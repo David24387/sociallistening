@@ -16,14 +16,19 @@ class PublicPageError(Exception):
 HOSTS={'www.linkedin.com','linkedin.com','de.linkedin.com','at.linkedin.com','uk.linkedin.com'}
 
 def valid_url(url,kind='post'):
-    p=urllib.parse.urlsplit(html.unescape(url))
-    if p.scheme!='https' or p.hostname not in HOSTS or p.username or p.password or p.port:
+    try:
+        p=urllib.parse.urlsplit(html.unescape(url))
+        port=p.port
+    except ValueError:
+        return None
+    if p.scheme!='https' or p.hostname not in HOSTS or p.username or p.password or port:
         return None
     if kind=='post' and not re.fullmatch(r'/posts/[^/]*activity-\d+-[^/]+/?',p.path):
         return None
-    if kind=='company' and not re.fullmatch(r'/company/[A-Za-z0-9_-]+/?',p.path):
+    if kind=='company' and not re.fullmatch(r'/company/[\w.& -]+/?',urllib.parse.unquote(p.path)):
         return None
-    return urllib.parse.urlunsplit(('https',p.netloc,p.path.rstrip('/'),'',''))
+    path=urllib.parse.quote(urllib.parse.unquote(p.path).rstrip('/'),safe='/.-_~')
+    return urllib.parse.urlunsplit(('https',p.netloc,path,'',''))
 
 class PageParser(HTMLParser):
     def __init__(self):
@@ -101,6 +106,29 @@ def fetch(url):
     except (urllib.error.URLError,TimeoutError):
         raise PublicPageError('Netzwerkfehler oder Timeout.') from None
 
+def round_robin(queues,limit):
+    queues=[list(q) for q in queues]
+    chosen=[]
+    while len(chosen)<limit and any(queues):
+        for queue in queues:
+            if queue and len(chosen)<limit:
+                chosen.append(queue.pop(0))
+    return chosen
+
+def select_posts(rows,limit=8):
+    groups={}
+    words=('reifen','werkstatt','autoglas','steinschlag','brems','fuhrpark','flotte','pannen','verkehr','auto','mobilität')
+    for row in rows:
+        if row['age_hours']<=720:
+            row['topic_relevance']=sum(word in row['caption'].lower() for word in words)
+            groups.setdefault(row['account'],[]).append(row)
+    for group in groups.values():
+        group.sort(key=lambda r:(r['topic_relevance']>0,r['interactions'] is not None,r['interactions'] or 0),reverse=True)
+    # Prioritize accounts with relevant content while preserving account diversity.
+    queues=sorted(groups.values(),key=lambda g:g[0]['topic_relevance']>0,reverse=True)
+    return round_robin(queues,limit)
+
+
 def collect(config,now):
     settings=config.get('linkedin',{})
     if not settings.get('enabled',False):return {'items':[],'sources':[],'discovery':'deaktiviert'}
@@ -108,7 +136,7 @@ def collect(config,now):
     known=json.loads(state.read_text()) if state.exists() else []
     seeds=[u for raw in settings.get('seed_posts',[]) if (u:=valid_url(raw))]
     sources=[]; discovered=[]
-    for raw in settings.get('company_pages',[])[:4]:
+    for raw in settings.get('company_pages',[])[:8]:
         url=valid_url(raw,'company')
         if not url:continue
         try:
@@ -120,10 +148,17 @@ def collect(config,now):
             sources.append({'account':url,'status':'FEHLER','count':0,'error':str(exc)})
         time.sleep(1)
     all_urls=list(dict.fromkeys(discovered+seeds+[u for raw in known if (u:=valid_url(raw))]))[:80]
-    # Newly discovered links first; rotate known links to avoid fixed-seed starvation.
-    rest=[u for u in all_urls if u not in discovered]
-    offset=(now.toordinal()*3)%len(rest) if rest else 0
-    work=list(dict.fromkeys(discovered+rest[offset:]+rest[:offset]))[:settings.get('max_posts_per_run',8)]
+    # Fair queues by publishing handle; one prolific company cannot consume the run.
+    groups={}
+    for url in all_urls:
+        handle=urllib.parse.unquote(urllib.parse.urlsplit(url).path).split('/posts/',1)[1].split('_',1)[0]
+        groups.setdefault(handle,[]).append(url)
+    # Rotate within each group daily so the same links do not monopolize every run.
+    queues=[]
+    for group in groups.values():
+        offset=(now.toordinal()*2)%len(group)
+        queues.append(group[offset:]+group[:offset])
+    work=round_robin(queues,settings.get('max_posts_per_run',12))
     rows=[]
     for url in work:
         try:
@@ -145,4 +180,4 @@ def render_section(report):
         comments=str(row['comments']) if row['comments'] is not None else 'unbekannt'
         cards.append(f'<article><small>LinkedIn · {e(row["account"])} · veröffentlicht {e(row["published_at"][:10])}</small><h2><a href="{e(row["url"],quote=True)}">{e(title)}</a></h2><p>{e(row["caption"][:900]).replace(chr(10),"<br>")}</p><p><b>{likes} öffentliche Reaktionen · {comments} Kommentare</b></p><p class="muted">Öffentliche Metadaten, keine offizielle Analytics-API. Kennzahlen können unvollständig oder verzögert sein. Kein belegter Performance-Vorsprung. Abruf: {e(row["fetched_at"])}</p></article>')
     status=''.join(f'<li>{e(s["account"])}: {e(s["status"])} {e(s.get("error",""))}</li>' for s in report.get('sources',[]))
-    return '<section><h2>LinkedIn · öffentlicher Testbetrieb</h2><p>Separate Auswahl aus den letzten 30 Tagen. Keine vollständige Branchenabdeckung und kein Vergleich mit Instagram. Sortiert nach absoluten sichtbaren Interaktionen; kein alters- oder accountbereinigter Erfolgsvergleich. '+e(report.get('discovery',''))+'</p></section>'+(''.join(cards) or '<article>Keine erreichbaren aktuellen LinkedIn-Beiträge. Quellenstatus unten beachten.</article>')+'<section><h2>LinkedIn-Quellenstatus</h2><ul>'+status+'</ul></section>'
+    return '<section><h2>LinkedIn · öffentlicher Testbetrieb</h2><p>Separate Auswahl aus den letzten 30 Tagen. Keine vollständige Branchenabdeckung und kein Vergleich mit Instagram. Accounts werden abwechselnd berücksichtigt; innerhalb eines Accounts werden Themenbezug und sichtbare Interaktionen bevorzugt. Kein altersbereinigter Erfolgsvergleich. '+e(report.get('discovery',''))+'</p></section>'+(''.join(cards) or '<article>Keine erreichbaren aktuellen LinkedIn-Beiträge. Quellenstatus unten beachten.</article>')+'<section><h2>LinkedIn-Quellenstatus</h2><ul>'+status+'</ul></section>'

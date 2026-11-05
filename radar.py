@@ -14,7 +14,7 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 from listening import send_mail
-from linkedin_public import collect as collect_linkedin, render_section as render_linkedin
+from linkedin_public import collect as collect_linkedin, render_section as render_linkedin, select_posts as select_linkedin
 
 class SourceError(Exception):
     pass
@@ -158,7 +158,7 @@ def main():
     else:
         sources.append({'account':'Instagram','status':'NICHT KONFIGURIERT','error':'META_ACCESS_TOKEN und INSTAGRAM_ACCOUNT_ID als GitHub-Secrets hinterlegen.','count':0})
     linkedin = collect_linkedin(config, now)
-    linkedin['items'] = sorted([r for r in linkedin['items'] if r['age_hours'] <= 720], key=lambda r: (r['interactions'] is not None, r['interactions'] or 0), reverse=True)[:config.get('linkedin', {}).get('max_report_posts', 6)]
+    linkedin['items'] = select_linkedin(linkedin['items'], config.get('linkedin', {}).get('max_report_posts', 8))
     analyze(rows, history, now)
     report = {'date':now.astimezone(ZoneInfo('Europe/Berlin')).strftime('%d.%m.%Y'), 'generated_at':now.isoformat(), 'total_posts':len(rows), 'sources':sources, 'items':select(rows,config.get('max_results',10)), 'linkedin':linkedin}
     rendered = render(report)
