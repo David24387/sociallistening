@@ -102,7 +102,7 @@ def send_mail(report_html, date):
     msg['From'], msg['To'] = os.environ['MAIL_FROM'], os.environ['MAIL_TO']
     msg.set_content('Der heutige Content-Report ist in der HTML-Version dieser E-Mail enthalten.')
     msg.add_alternative(report_html, subtype='html')
-    with smtplib.SMTP(os.environ['SMTP_HOST'], int(os.environ.get('SMTP_PORT', '587')), timeout=30) as smtp:
+    with smtplib.SMTP(os.environ['SMTP_HOST'], int(os.environ.get('SMTP_PORT') or '587'), timeout=30) as smtp:
         smtp.starttls(context=ssl.create_default_context())
         smtp.login(os.environ['SMTP_USER'], os.environ['SMTP_PASSWORD'])
         smtp.send_message(msg)
