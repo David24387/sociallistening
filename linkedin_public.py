@@ -123,10 +123,11 @@ def select_posts(rows,limit=3):
 def prioritize_links(group,inspected,discovered):
     # Preserve company-card order among new links. Refresh current cards before
     # archived seeds, so stale manually researched examples do not fill the run.
-    fresh=[u for u in group if u not in inspected and u in discovered]
-    refresh=[u for u in group if u in inspected and u in discovered]
+    latest=[u for u in group if u in discovered][:2]
+    fresh=[u for u in group if u not in inspected and u in discovered and u not in latest]
+    refresh=[u for u in group if u in inspected and u in discovered and u not in latest]
     backlog=[u for u in group if u not in discovered]
-    return fresh+refresh+backlog
+    return latest+fresh+refresh+backlog
 
 
 def collect(config,now):
@@ -187,4 +188,4 @@ def render_section(report):
         adoption='<p><b>Übertragbares Muster:</b> '+e(adopt.get('pattern',''))+'</p><p><b>Für Euromaster:</b> '+e(adopt.get('idea',''))+'</p><p class="muted">'+e(adopt.get('basis',''))+'</p>'
         cards.append(f'<article><small>{e(row.get('editorial_status','Öffentlicher Fund'))} · LinkedIn · {e(row["account"])} · veröffentlicht {e(row["published_at"][:10])}</small><h2><a href="{e(row["url"],quote=True)}">{e(title)}</a></h2><p>{e(row["caption"][:900]).replace(chr(10),"<br>")}</p><p><b>{likes} öffentliche Reaktionen · {comments} Kommentare</b></p><p><b>Warum im Report:</b> {e(proof)}</p>{adoption}<p class="muted">Öffentliche Metadaten, keine offizielle Analytics-API. Kennzahlen können unvollständig oder verzögert sein. Paid-Einsatz, Reichweite und Conversion unbekannt. Abruf: {e(row["fetched_at"])}</p></article>')
     status=''.join(f'<li>{e(s["account"])}: {e(s["status"])} {e(s.get("error",""))}</li>' for s in report.get('sources',[]))
-    return '<section><h2>LinkedIn · öffentlicher Testbetrieb</h2><p>Nur qualifizierte Ausreißer im Alter von 2–7 Tagen; mindestens 8 Vergleichsposts desselben Accounts und Formats, 2× Median, oberste 10 % und mindestens 100 Interaktionen. Bereits berichtete Beiträge erscheinen an Folgetagen nur bei deutlichem Interaktionszuwachs. Keine vollständige Branchenabdeckung und kein Vergleich mit Instagram. Keine Auffüllung ohne Benchmark. Vergleichsmodus steht beim Beitrag; ohne ausreichende Historie kann dieser Abschnitt leer bleiben. '+e(report.get('discovery',''))+'</p></section>'+(''.join(cards) or '<article>Heute kein neuer LinkedIn-Beitrag mit ausreichenden Vergleichsdaten und erfüllten Top-Performer-Schwellen. Quellenstatus unten beachten.</article>')+'<section><h2>LinkedIn-Quellenstatus</h2><ul>'+status+'</ul></section>'
+    return '<section><h2>LinkedIn · öffentlicher Testbetrieb</h2><p>Starke Beiträge der letzten 30 Tage: mindestens 5 Vergleichsposts desselben Accounts und Formats, mindestens 1,5× Median, oberste 20 % und mindestens 50 Interaktionen. Aktuelle Posts und ältere Best-of-Beispiele werden beim Beitrag unterschieden. Bereits berichtete Beiträge erscheinen an Folgetagen nur bei deutlichem Interaktionszuwachs. Keine vollständige Branchenabdeckung und kein Vergleich mit Instagram. Keine Auffüllung ohne Benchmark. Vergleichsmodus steht beim Beitrag; ohne ausreichende Historie kann dieser Abschnitt leer bleiben. '+e(report.get('discovery',''))+'</p></section>'+(''.join(cards) or '<article>Heute kein neuer LinkedIn-Beitrag mit ausreichenden Vergleichsdaten und erfüllten Top-Performer-Schwellen. Quellenstatus unten beachten.</article>')+'<section><h2>LinkedIn-Quellenstatus</h2><ul>'+status+'</ul></section>'

@@ -20,17 +20,20 @@ def sample_48h(row,history):
 
 def assess(rows,history=None,settings=None):
     history=history or {};settings=settings or {}
-    min_peers=settings.get('min_peers',8)
-    min_interactions=settings.get('min_interactions',100)
-    min_factor=settings.get('min_factor',2.0)
+    min_peers=settings.get('min_peers',5)
+    min_interactions=settings.get('min_interactions',50)
+    min_factor=settings.get('min_factor',1.5)
+    min_percentile=settings.get('min_percentile',80)
+    min_age=settings.get('min_age_hours',24)
+    max_age=settings.get('max_age_hours',720)
     for row in rows:
         row.update(top_performer=False,performance_reason='',benchmark_n=0,benchmark_median=None,benchmark_factor=None,benchmark_percentile=None)
         if row.get('format') in ('UNKNOWN','POST'):
             row['performance_reason']='Format nicht zuverlässig erfasst';continue
         if row.get('interactions') is None:
             row['performance_reason']='Interaktionen unvollständig';continue
-        if not 48<=row['age_hours']<=168:
-            row['performance_reason']='Außerhalb des Messfensters von 2–7 Tagen';continue
+        if not min_age<=row['age_hours']<=max_age:
+            row['performance_reason']=f'Außerhalb des Messfensters von {min_age/24:g}–{max_age/24:g} Tagen';continue
         if GIVEAWAY.search(row.get('caption','')):
             row['performance_reason']='Gewinnspiel/Verlosung ausgeschlossen';continue
         peers=[p for p in rows if p['id']!=row['id'] and p['account']==row['account'] and p['format']==row['format'] and p.get('interactions') is not None and p['age_hours']<=2160 and not GIVEAWAY.search(p.get('caption',''))]
@@ -49,11 +52,13 @@ def assess(rows,history=None,settings=None):
         if median<=0:
             row['performance_reason']='Kein belastbarer Medianwert';continue
         factor=own/median
-        cutoff=sorted(values)[max(0,math.ceil(0.9*len(values))-1)]
+        cutoff=sorted(values)[max(0,math.ceil(min_percentile/100*len(values))-1)]
         percentile=100*sum(v<=own for v in values)/len(values)
         row.update(benchmark_median=median,benchmark_factor=round(factor,2),benchmark_percentile=round(percentile),benchmark_p90=cutoff)
         row['top_performer']=own>=min_interactions and factor>=min_factor and own>=cutoff
-        row['performance_reason']='Alle Top-Performer-Schwellen erfüllt' if row['top_performer'] else 'Resonanz erfüllt die strengen Schwellen nicht'
+        row['performance_tier']='Deutlicher Ausreißer' if row['top_performer'] and factor>=2 and percentile>=90 and own>=100 else 'Stark im Accountvergleich' if row['top_performer'] else 'Nicht qualifiziert'
+        row['benchmark_confidence']='Kleinere Vergleichsbasis' if len(values)<8 else 'Vergleichsbasis vorhanden'
+        row['performance_reason']='Alle Schwellen für starke Resonanz erfüllt' if row['top_performer'] else 'Resonanz nicht ausreichend über dem Accountvergleich'
     return rows
 
 def adaptation(row):
@@ -71,8 +76,10 @@ def adaptation(row):
     for matches,pattern,idea in rules:
         if matches:return {'pattern':pattern,'idea':idea,'basis':'Regelbasiert aus Caption und Format; keine Bild-/Videoanalyse und kein bewiesener Erfolgsgrund.'}
     if row.get('inspiration'):
+        if row.get('format')=='VIDEO' and len(text.strip())>=30:
+            return {'pattern':'Video mit eigenem Marken-Einstieg (inhaltlich nicht gesichtet)','idea':'Den Einstieg des Originalposts als Anregung prüfen und ein eigenes Euromaster-Reel entwickeln: eine typische Kundensituation vor dem Reifenwechsel, ein überraschender Werkstattmoment und eine konkrete Antwort der Fachkraft. Die Übertragbarkeit des Videoinhalts muss vor Umsetzung manuell geprüft werden.','basis':'Vorläufiger Formattransfer aus Caption und VIDEO-Metadatum; kein behaupteter Bildinhalt oder bewiesener Erfolgsgrund.'}
         return None
-    if any(w in text for w in ('reifen','werkstatt','autoglas','brems','pannen')):
+    if any(w in text for w in ('reifen','werkstatt','autoglas','brems','pannen','fuhrpark','flotte','mobilität','verkehr')):
         return {'pattern':'Automotive-Thema mit belegter außergewöhnlicher Resonanz','idea':'Die konkrete Kundenfrage dieses Beitrags aufgreifen und von einer Euromaster-Fachkraft an einem echten Werkstattbeispiel erklären lassen. Original vor der Umsetzung inhaltlich prüfen.','basis':'Regelbasierter Themenvorschlag; keine Medienanalyse oder bewiesene Erfolgsursache.'}
     return None
 
@@ -93,4 +100,4 @@ def choose(rows,limit=5,max_inspiration=2,max_per_account=2):
     return selected
 
 def evidence(row):
-    return f"{row['benchmark_factor']}× Account-Median ({row['benchmark_median']:g}), oberste 10 % der {row['benchmark_n']} Vergleichsposts desselben Formats. Vergleichswert dieses Posts: {row['performance_interactions']}. Modus: {row['benchmark_mode']}."
+    return f"{row.get('performance_tier','Starker Beitrag')}: {row['benchmark_factor']}× Account-Median ({row['benchmark_median']:g}); mindestens so viele Interaktionen wie {row['benchmark_percentile']} % der {row['benchmark_n']} Vergleichsposts desselben Formats. Vergleichswert dieses Posts: {row['performance_interactions']}. {row.get('benchmark_confidence','')}. Modus: {row['benchmark_mode']}."

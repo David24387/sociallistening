@@ -49,9 +49,12 @@
     "max_report_posts": 3
   },
   "performance": {
-    "min_peers": 8,
-    "min_interactions": 100,
-    "min_factor": 2
+    "min_peers": 5,
+    "min_interactions": 50,
+    "min_factor": 1.5,
+    "min_percentile": 80,
+    "min_age_hours": 24,
+    "max_age_hours": 720
   },
   "inspiration_accounts": [
     "hornbach_de",

@@ -21,7 +21,15 @@ class DailyTests(unittest.TestCase):
         prepare([r],state,NOW+timedelta(hours=1));self.assertTrue(r['eligible_for_report'])
         self.assertEqual(record([r],state,NOW+timedelta(hours=1))['1']['interactions'],100)
     def test_old_found_post_is_not_new_content(self):
-        r=row(age=200);prepare([r],{},NOW);self.assertFalse(r['eligible_for_report'])
+        r=row(age=800);prepare([r],{},NOW);self.assertFalse(r['eligible_for_report'])
         self.assertEqual(select_posts([r]),[])
     def test_newly_discovered_ahead_of_rotation_and_refresh(self):
-        self.assertEqual(prioritize_links(['old','new','seed'],{'old':{}},['old','new']),['new','old','seed'])
+        self.assertEqual(prioritize_links(['old','new','seed'],{'old':{}},['old','new']),['old','new','seed'])
+
+
+class OlderExamplesTests(unittest.TestCase):
+    def test_twenty_day_post_label_does_not_claim_new_publication(self):
+        r=row(age=480);prepare([r],{},NOW)
+        self.assertTrue(r['eligible_for_report'])
+        self.assertIn('Best of 30 Tage',r['editorial_status'])
+        self.assertNotIn('aktuell',r['editorial_status'])

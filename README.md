@@ -1,15 +1,15 @@
 # EUROMASTER Top-Performer Radar
 
-Täglicher Report mit belegbaren Ausreißern aus Instagram und öffentlich erreichbaren LinkedIn-Beiträgen. Gewöhnliche neue Beiträge werden nicht aufgenommen. Facebook ist auf Wunsch deaktiviert. Keine kostenpflichtigen Daten- oder KI-Dienste.
+Täglicher Report mit überdurchschnittlich starken Beiträgen und klar gekennzeichneten Ausreißern aus Instagram und öffentlich erreichbaren LinkedIn-Beiträgen. Gewöhnliche neue Beiträge werden nicht aufgenommen. Facebook ist auf Wunsch deaktiviert. Keine kostenpflichtigen Daten- oder KI-Dienste.
 
 ## Strenge Auswahl statt beliebiger Fundstücke
 
 Alle Bedingungen müssen gleichzeitig erfüllt sein:
 
-- Beitrag 48 Stunden bis 7 Tage alt.
-- Vollständige sichtbare Interaktionen (Likes/Reaktionen + Kommentare), mindestens 100.
-- Mindestens 8 andere Vergleichsposts desselben Accounts und erfassten Formats; Kandidat ausgeschlossen.
-- Mindestens 2× Median dieser Vergleichsposts und mindestens das 90. Perzentil der Vergleichsstichprobe.
+- Beitrag 24 Stunden bis 30 Tage alt; bis 7 Tage als aktuell, darüber als Best of 30 Tage gekennzeichnet.
+- Vollständige sichtbare Interaktionen (Likes/Reaktionen + Kommentare), mindestens 50.
+- Mindestens 5 andere Vergleichsposts desselben Accounts und erfassten Formats; Kandidat ausgeschlossen.
+- Stark im Accountvergleich: mindestens 1,5× Median dieser Vergleichsposts und mindestens das 80. Perzentil der Vergleichsstichprobe. Deutlicher Ausreißer: zusätzlich mindestens 2× Median, oberhalb von mindestens 90 % der Vergleichsposts und mindestens 100 Interaktionen. Vergleichsgruppen mit nur 5–7 Posts werden als kleinere Basis gekennzeichnet.
 - Keine erkennbaren Gewinnspiele/Verlosungen und kein unbekanntes Format.
 - Konkreter Euromaster-Transfer aus Caption oder Format ableitbar.
 
@@ -17,17 +17,17 @@ Wenn genügend Historie existiert, werden Messungen im Alter von 48–72 Stunden
 
 Die Regeln identifizieren redaktionell definierte Ausreißer, keinen statistisch bewiesenen oder kausalen Erfolg. Reichweite, Views, Saves, Shares, Paid-Einsatz und Conversion sind unbekannt. Öffentliche LinkedIn-Metadaten können verzögert oder unvollständig sein. Eine hohe Reaktionszahl kann auch Kritik widerspiegeln. Vor eigener Umsetzung das Original ansehen und Tonalität/Inhalt prüfen. Die Followerquote ist keine Reichweiten-Engagementrate.
 
-**Kein belastbarer Vergleich = kein Eintrag.** Daher sind leere oder kurze Tagesreports ausdrücklich zulässig. Insbesondere LinkedIn baut erst eine Vergleichshistorie auf. Höchstens 5 Instagram- und 3 LinkedIn-Beiträge, maximal 2 je Account; kein Mindestkontingent pro Quelle. Bis zu 2 branchenfremde Beispiele im Instagram-Abschnitt, nur mit konkret ableitbarem Transfer.
+**Kein belastbarer Vergleich = kein Eintrag.** Daher sind leere oder kurze Tagesreports ausdrücklich zulässig. Insbesondere LinkedIn baut erst eine Vergleichshistorie auf. Höchstens 5 Instagram- und 3 LinkedIn-Beiträge, maximal 2 je Account; kein Mindestkontingent pro Quelle. Die frühere Kombination 2–7 Tage / mindestens 8 Peers / 2× Median / oberste 10 % war zu restriktiv: im geprüften Lauf lagen 461 von 500 Instagram-Posts und alle 17 ausgelesenen LinkedIn-Posts außerhalb dieses Altersfensters. Das 30-Tage-Fenster erschließt brauchbare Best-of-Beispiele, ohne sie als neue Veröffentlichungen auszugeben. Bis zu 2 branchenfremde Beispiele im Instagram-Abschnitt, nur mit konkret ableitbarem Transfer.
 
 ## Branchenfremde Inspiration und Ideen
 
-Neben den 8 bestätigten Automotive-Instagram-Accounts werden hornbach_de und ikeadeutschland versucht. Handles anhand offizieller Quellen recherchiert; API-Zugriff muss der nächste Lauf bestätigen. Neue Fehler stehen im Quellenstatus. Weitere Quellen können in config.json ergänzt werden.
+Neben den 8 bestätigten Automotive-Instagram-Accounts werden hornbach_de und ikeadeutschland versucht. Handles anhand offizieller Quellen recherchiert und im API-Lauf bestätigt. Beide zusätzlichen Inspirations-Accounts lieferten im nächsten GitHub-Lauf je 50 Posts. Neue Fehler stehen im Quellenstatus. Weitere Quellen können in config.json ergänzt werden.
 
-Ein Transfer nennt das erkannte Muster und einen eigenen Euromaster-Ansatz, z.B. Fehler vermeiden → Reifenlagerung; Kosten erklären → Leistungsumfang des Reifenservices; Vorher/nachher → Autoglas-Auftrag. Regeln lesen Caption und Metadaten. Es gibt **keine automatische Bild-/Videoanalyse oder frei formulierende KI-Redaktion**. Bei branchenfremden Posts ohne erkennbares Muster erfolgt kein Eintrag, selbst bei hoher Performance. Karussellstruktur ist ein Metadatenhinweis und kein Beleg für die konkrete Bilddramaturgie.
+Ein Transfer nennt das erkannte Muster und einen eigenen Euromaster-Ansatz, z.B. Fehler vermeiden → Reifenlagerung; Kosten erklären → Leistungsumfang des Reifenservices; Vorher/nachher → Autoglas-Auftrag. Regeln lesen Caption und Metadaten. Es gibt **keine automatische Bild-/Videoanalyse oder frei formulierende KI-Redaktion**. Bei branchenfremden Bildposts ohne erkennbares Muster erfolgt kein Eintrag. Bei qualifizierten Videos mit aussagekräftiger Caption kann ein vorläufiger Formattransfer vorgeschlagen werden; dieser ist ausdrücklich nicht als Sichtung oder Interpretation des Videos ausgegeben. Karussellstruktur ist ein Metadatenhinweis und kein Beleg für die konkrete Bilddramaturgie.
 
 ## Tägliche Erfassung
 
-Instagram: bis zu 50 aktuelle Posts je Account über Meta Business Discovery, erneut bei jedem Lauf. LinkedIn: bis zu 8 öffentliche Unternehmensseiten täglich auf Beitragslinks prüfen, neue Links priorisieren, danach bekannte Posts aktualisieren. Maximal 18 Einzelabrufe je Lauf, zwischen Publishing-Handles verteilt. Keine globale oder vollständige Plattformsuche. Keine Umgehung von Login-/Prüfseiten, keine LinkedIn-Passwörter, Cookies oder Proxys. Einzelfehler bleiben sichtbar. Die 6 konfigurierten LinkedIn-Unternehmensseiten haben im GitHub-Lauf Beitragslinks geliefert, einzelne Posts können unzugänglich sein.
+Instagram: bis zu 50 aktuelle Posts je Account über Meta Business Discovery, erneut bei jedem Lauf. LinkedIn: bis zu 8 öffentliche Unternehmensseiten täglich auf Beitragslinks prüfen, die zwei neuesten sichtbaren Links je Publishing-Handle bei jedem Lauf aktualisieren, danach weitere noch nicht untersuchte aktuelle Links und weitere bekannte Posts prüfen. So verdrängen ältere unbekannte Links nicht dauerhaft die aktuellen Posts. Maximal 18 Einzelabrufe je Lauf, zwischen Publishing-Handles verteilt. Keine globale oder vollständige Plattformsuche. Keine Umgehung von Login-/Prüfseiten, keine LinkedIn-Passwörter, Cookies oder Proxys. Einzelfehler bleiben sichtbar. Die 6 konfigurierten LinkedIn-Unternehmensseiten haben im GitHub-Lauf Beitragslinks geliefert, einzelne Posts können unzugänglich sein.
 
 Bekannte LinkedIn-Postdaten werden für Vergleiche über mehrere Läufe aufbewahrt. Fehlende Vergleichsdaten werden nicht durch Rohzahlen oder allgemeine Branchenmediane ersetzt. Unterschiedliche Plattformen werden nicht miteinander verglichen.
 
@@ -56,6 +56,6 @@ Mailversand über GMX an die Firmenadressen ist vom Nutzer als funktionierend be
 
 [Actions](https://github.com/David24387/sociallistening/actions/workflows/daily.yml) → Run workflow → main. Laufübersicht zeigt Quellen und Anzahl qualifizierter Beiträge. Artifact content-report-… herunterladen, ZIP entpacken, index.html öffnen. latest.json enthält die ausgewählten Posts mit Nachweisen. diagnostics.json enthält Quellenstatus und Ausschlussgründe mit Anzahlen. Reports 30 Tage aufbewahrt, keine öffentliche Report-Website.
 
-Python 3.12, Standardbibliothek; lokal python radar.py, optional --send, Zugangsdaten nur aus Umgebungsvariablen. Tests: python -m unittest discover -s tests -v. Die strengen Regeln wurden mit synthetischen Daten getestet; im simulierten Gesamtlauf wurde nur 1 von 9 Posts mit 3× Median aufgenommen. Wirkung und neue Inspirationsquellen im nächsten Live-Lauf prüfen.
+Python 3.12, Standardbibliothek; lokal python radar.py, optional --send, Zugangsdaten nur aus Umgebungsvariablen. Tests: python -m unittest discover -s tests -v. Auswahlregeln, echte Schwellenunterschiede, Altersfenster, Wiederholungen, Ausschluss gewöhnlicher Posts und Kennzeichnung älterer Beispiele werden synthetisch geprüft. Der nächste Live-Lauf muss die Trefferzahl nach der Anpassung bestätigen; es gibt keine garantierte Mindestzahl und keine Auffüllung mit durchschnittlichen Posts.
 
 Kennzahlenhistorie, bekannte Links, LinkedIn-Vergleichsposts und Reporthistorie liegen im Actions-Cache unter state/. Reporthistorie bedeutet generiertes HTML, nicht garantiert erfolgreich zugestellte Mail. Cache-Verlust setzt Vergleiche und Wiedererkennung zurück. Das Repository selbst ist öffentlich, die Zugangsdaten bleiben Secrets.

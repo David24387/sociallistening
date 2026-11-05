@@ -1,18 +1,18 @@
 """Daily report novelty; state tracks generated reports, not successful mail delivery."""
 from datetime import datetime
 
-def prepare(rows,reported,now,max_age_hours=168):
+def prepare(rows,reported,now,max_age_hours=720):
     for row in rows:
         previous=reported.get(row['id'])
         row['first_report']=previous is None
         row['eligible_for_report']=False
         row['growth_since_report']=None
         if row['age_hours']>max_age_hours:
-            row['editorial_status']='Älter als 7 Tage; nicht in der Tagesauswahl'
+            row['editorial_status']=f'Älter als {max_age_hours/24:g} Tage; nicht in der Tagesauswahl'
             continue
         if previous is None:
             row['eligible_for_report']=True
-            row['editorial_status']='Erstmals im Report · Resonanz prüfen'
+            row['editorial_status']='Neu im Report · aktuell (letzte 7 Tage)' if row['age_hours']<=168 else 'Neu im Report · Best of 30 Tage'
             continue
         date=datetime.fromisoformat(previous['at'])
         # Re-running the same calendar day keeps the report reviewable.

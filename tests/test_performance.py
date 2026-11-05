@@ -14,7 +14,7 @@ class PerformanceTests(unittest.TestCase):
         rows=sample();rows[-1]['interactions']=800;rows[-2]['interactions']=800
         assess(rows);self.assertFalse(rows[0]['top_performer'])
     def test_too_few_peers_never_padded(self):
-        rows=sample(peers=7);assess(rows);self.assertEqual(choose(rows),[])
+        rows=sample(peers=4);assess(rows);self.assertEqual(choose(rows),[])
     def test_large_account_raw_count_is_not_success(self):
         rows=sample(10000)
         for peer in rows[1:]:peer['interactions']=9000
@@ -28,7 +28,7 @@ class PerformanceTests(unittest.TestCase):
             if mutation=='giveaway':rows[0]['caption']='Gewinnspiel: tolle Preise'
             assess(rows);self.assertFalse(rows[0]['top_performer'])
     def test_minimum_volume_and_age(self):
-        rows=sample(99)
+        rows=sample(49)
         for peer in rows[1:]:peer['interactions']=10
         assess(rows);self.assertFalse(rows[0]['top_performer'])
         rows=sample();rows[0]['age_hours']=10;assess(rows);self.assertFalse(rows[0]['top_performer'])
@@ -51,5 +51,23 @@ class PerformanceTests(unittest.TestCase):
         for p in rows[5:]:p['format']='VIDEO'
         assess(rows);self.assertFalse(rows[0]['top_performer'])
     def test_growth_does_not_override_failed_outlier_rules(self):
-        rows=sample(150);rows[0]['eligible_for_report']=True;rows[0]['growth_since_report']=500
+        rows=sample(120);rows[0]['eligible_for_report']=True;rows[0]['growth_since_report']=500
         assess(rows);self.assertEqual(choose(rows),[])
+
+
+class PracticalWindowTests(unittest.TestCase):
+    def test_strong_and_outlier_labels_are_distinct(self):
+        rows=sample(160);assess(rows)
+        self.assertTrue(rows[0]['top_performer'])
+        self.assertEqual(rows[0]['performance_tier'],'Stark im Accountvergleich')
+        rows=sample(300);assess(rows)
+        self.assertEqual(rows[0]['performance_tier'],'Deutlicher Ausreißer')
+    def test_useful_older_post_with_real_baseline_qualifies(self):
+        rows=[post('older',300,480)]+[post(i,100,600+i) for i in range(5)]
+        assess(rows);self.assertEqual(choose(rows)[0]['id'],'older')
+        self.assertIn('Kleinere',rows[0]['benchmark_confidence'])
+    def test_regular_posts_still_not_padding(self):
+        rows=sample(120);assess(rows);self.assertEqual(choose(rows),[])
+    def test_post_after_thirty_days_excluded(self):
+        rows=[post('too_old',1000,750)]+[post(i,100,800+i) for i in range(8)]
+        assess(rows);self.assertFalse(rows[0]['top_performer'])
