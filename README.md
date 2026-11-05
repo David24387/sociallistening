@@ -49,3 +49,11 @@ Täglich 06:17 UTC (07:17 MEZ / 08:17 MESZ). GitHub kann verzögern oder nach 60
 ## Lokal und Tests
 
 Python 3.12, Standardbibliothek. META_ACCESS_TOKEN und INSTAGRAM_ACCOUNT_ID sicher als Umgebungsvariablen setzen und `python radar.py` ausführen; mit `--send` für Mail. Tests: `python -m unittest discover -s tests -v`. Tests sind synthetisch und benötigen keinen Token. Live-End-to-End-Test steht bis zum Setzen der Secrets aus.
+
+## LinkedIn: öffentlicher Testbetrieb
+
+Facebook wird auf Wunsch nicht weiter angebunden. LinkedIn wird jetzt separat im täglichen Report versucht, ohne Entwickler-App, Passwort, Cookies oder kostenpflichtigen Dienst. Die erste öffentliche ADAC-Postseite enthielt nachweislich Datum, Caption, 48 Reaktionen und 0 Kommentare; das ist kein Erfolgsbenchmark. Der regelmäßige Abruf auf GitHub muss noch geprüft werden.
+
+In config.json steht der Abschnitt linkedin: company_pages für automatische Entdeckung aus öffentlich ausgelieferten Unternehmensseiten, seed_posts für manuell recherchierte Startlinks. Maximal 4 Unternehmensseiten und 8 Einzelbeiträge je Lauf, keine Pagination, keine Umgehung von Login-/Prüfseiten oder Abrufsperren. Neu entdeckte Links werden bevorzugt und bekannte rotiert; bekannte Links liegen im Actions-Cache. Die Unternehmensseiten lieferten im lokalen Test Prüfseiten statt Beiträgen. Neue tägliche LinkedIn-Funde sind daher ausdrücklich nicht gesichert.
+
+Öffentliche Beiträge werden über passende JSON-LD-Metadaten zur exakten Activity-ID ausgewertet; fehlende Zähler bleiben unbekannt. Quellenfehler sind im separaten Reportabschnitt und diagnostics.json sichtbar. LinkedIn zeigt maximal 6 erreichbare Posts aus 30 Tagen, nach absoluten Interaktionen sortiert; kein alters-/accountbereinigter Erfolgsvergleich. Der Instagram-Abschnitt bleibt davon getrennt. Die Themenideen beziehen sich derzeit weiterhin auf Instagram-Captions.

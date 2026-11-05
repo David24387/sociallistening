@@ -14,6 +14,7 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 from listening import send_mail
+from linkedin_public import collect as collect_linkedin, render_section as render_linkedin
 
 class SourceError(Exception):
     pass
@@ -130,7 +131,7 @@ def render(report):
     themes = Counter(theme for row in report['items'] for theme in row['themes'])
     suggestions = ''.join(f'<li><b>{e(name)}</b> ({count} ausgewählte Beiträge): {e(IDEAS[name])}</li>' for name,count in themes.most_common(3)) or '<li>Noch keine thematische Auswertung möglich.</li>'
     status = ''.join(f'<li>@{e(s["account"])}: {e(s["status"])} · {s.get("count",0)} Beiträge{": " + e(s["error"]) if s.get("error") else ""}</li>' for s in report['sources'])
-    return f'''<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>EUROMASTER Content Radar</title><style>body{{margin:0;background:#f2f5fa;font:16px/1.6 Arial,sans-serif;color:#172b4d}}main{{max-width:940px;margin:auto;padding:24px}}header{{padding:28px;background:#164194;color:white;border-bottom:8px solid #fedd00;border-radius:14px}}h1{{margin:0;font-size:34px}}h2{{font-size:21px}}a{{color:#164194}}article,section{{padding:24px;background:white;margin:20px 0;border-radius:12px}}small,.muted{{color:#596579}}.notice{{background:#fff4bd;padding:18px;border-radius:12px}}li{{margin-bottom:10px}}</style></head><body><main><header><h1>Content Radar</h1><p>EUROMASTER · {e(report['date'])}</p></header><p class="notice">Instagram: echte API-Kennzahlen. Facebook und LinkedIn: noch keine angebundene Performance-Datenquelle. Keine vollständige Branchenabdeckung.</p><p>{report['total_posts']} gelesene Beiträge · {len(report['items'])} ausgewählte Beiträge der letzten 7 Tage</p>{''.join(cards) or '<article>Keine aktuellen Beiträge verfügbar. Quellenstatus unten prüfen.</article>'}<section><h2>Ansätze für Euromaster</h2><p>Regelbasierte Themenhinweise aus den ausgewählten Captions und redaktionelle Vorschläge. Keine bewiesenen Erfolgsursachen oder plattformweiten Trends.</p><ul>{suggestions}</ul></section><section><h2>Quellen und Abdeckung</h2><ul>{status}</ul><p>Instagram Business Discovery, Abruf: {e(report['generated_at'])}. Bis zu 50 aktuelle Beiträge je Account; keine vollständige Pagination. Mögliche oder falsche Accountnamen werden als Fehler ausgewiesen.</p></section><section><h2>Bewertung verstehen</h2><p>Interaktionen = Likes + Kommentare. Fehlende Werte bleiben unbekannt. Vorläufige Vergleiche verwenden mindestens 5 andere Beiträge desselben Accounts und Formats, jeweils 3–90 Tage alt. Nur Beiträge im Alter von 3–7 Tagen erhalten einen Vergleichsfaktor. Unterschiedliches Messalter und bezahlte Verbreitung bleiben mögliche Einflüsse. Konten werden abwechselnd berücksichtigt; große Accounts dominieren die Auswahl nicht allein durch ihre Followerzahl.</p><p>Die Followerquote ist keine Reichweiten-Engagementrate. Reichweite, Saves, Shares und Views sind in dieser Version nicht erfasst. Tägliche Veränderungen erscheinen erst nach einem Vergleichsabruf nach ca. 24 Stunden. Spitzenbeiträge können an mehreren Tagen erscheinen; das ist als laufende Beobachtung beabsichtigt.</p></section></main></body></html>'''
+    return f'''<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>EUROMASTER Content Radar</title><style>body{{margin:0;background:#f2f5fa;font:16px/1.6 Arial,sans-serif;color:#172b4d}}main{{max-width:940px;margin:auto;padding:24px}}header{{padding:28px;background:#164194;color:white;border-bottom:8px solid #fedd00;border-radius:14px}}h1{{margin:0;font-size:34px}}h2{{font-size:21px}}a{{color:#164194}}article,section{{padding:24px;background:white;margin:20px 0;border-radius:12px}}small,.muted{{color:#596579}}.notice{{background:#fff4bd;padding:18px;border-radius:12px}}li{{margin-bottom:10px}}</style></head><body><main><header><h1>Content Radar</h1><p>EUROMASTER · {e(report['date'])}</p></header><p class="notice">Instagram: echte API-Kennzahlen. Facebook ist auf Wunsch deaktiviert. LinkedIn: öffentlicher Testbetrieb im separaten Abschnitt. Keine vollständige Branchenabdeckung.</p><p>{report['total_posts']} gelesene Beiträge · {len(report['items'])} ausgewählte Beiträge der letzten 7 Tage</p>{''.join(cards) or '<article>Keine aktuellen Instagram-Beiträge verfügbar. Quellenstatus unten prüfen.</article>'}{render_linkedin(report.get('linkedin', {}))}<section><h2>Ansätze für Euromaster</h2><p>Regelbasierte Themenhinweise aus den ausgewählten Captions und redaktionelle Vorschläge. Keine bewiesenen Erfolgsursachen oder plattformweiten Trends.</p><ul>{suggestions}</ul></section><section><h2>Quellen und Abdeckung</h2><ul>{status}</ul><p>Instagram Business Discovery, Abruf: {e(report['generated_at'])}. Bis zu 50 aktuelle Beiträge je Account; keine vollständige Pagination. Mögliche oder falsche Accountnamen werden als Fehler ausgewiesen.</p></section><section><h2>Bewertung verstehen</h2><p>Interaktionen = Likes + Kommentare. Fehlende Werte bleiben unbekannt. Vorläufige Vergleiche verwenden mindestens 5 andere Beiträge desselben Accounts und Formats, jeweils 3–90 Tage alt. Nur Beiträge im Alter von 3–7 Tagen erhalten einen Vergleichsfaktor. Unterschiedliches Messalter und bezahlte Verbreitung bleiben mögliche Einflüsse. Konten werden abwechselnd berücksichtigt; große Accounts dominieren die Auswahl nicht allein durch ihre Followerzahl.</p><p>Die Followerquote ist keine Reichweiten-Engagementrate. Reichweite, Saves, Shares und Views sind in dieser Version nicht erfasst. Tägliche Veränderungen erscheinen erst nach einem Vergleichsabruf nach ca. 24 Stunden. Spitzenbeiträge können an mehreren Tagen erscheinen; das ist als laufende Beobachtung beabsichtigt.</p></section></main></body></html>'''
 
 def main():
     parser = argparse.ArgumentParser()
@@ -156,19 +157,24 @@ def main():
             time.sleep(0.5)
     else:
         sources.append({'account':'Instagram','status':'NICHT KONFIGURIERT','error':'META_ACCESS_TOKEN und INSTAGRAM_ACCOUNT_ID als GitHub-Secrets hinterlegen.','count':0})
+    linkedin = collect_linkedin(config, now)
+    linkedin['items'] = sorted([r for r in linkedin['items'] if r['age_hours'] <= 720], key=lambda r: (r['interactions'] is not None, r['interactions'] or 0), reverse=True)[:config.get('linkedin', {}).get('max_report_posts', 6)]
     analyze(rows, history, now)
-    report = {'date':now.astimezone(ZoneInfo('Europe/Berlin')).strftime('%d.%m.%Y'), 'generated_at':now.isoformat(), 'total_posts':len(rows), 'sources':sources, 'items':select(rows,config.get('max_results',10))}
+    report = {'date':now.astimezone(ZoneInfo('Europe/Berlin')).strftime('%d.%m.%Y'), 'generated_at':now.isoformat(), 'total_posts':len(rows), 'sources':sources, 'items':select(rows,config.get('max_results',10)), 'linkedin':linkedin}
     rendered = render(report)
     (output/'index.html').write_text(rendered,encoding='utf-8')
     (output/'latest.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
-    (output/'diagnostics.json').write_text(json.dumps(sources,ensure_ascii=False,indent=2),encoding='utf-8')
+    (output/'diagnostics.json').write_text(json.dumps({'instagram':sources, 'linkedin':linkedin['sources']},ensure_ascii=False,indent=2),encoding='utf-8')
     summary = os.environ.get('GITHUB_STEP_SUMMARY')
     if summary:
         with open(summary,'a',encoding='utf-8') as f:
             f.write(f'## Instagram Content Radar\n\n{len(rows)} Beiträge gelesen; {len(report["items"])} aktuelle Beiträge im Report.\n\n')
             for source in sources:
-                f.write(f'- @{source["account"]}: {source["status"]}, {source["count"]} Beiträge\n')
-            f.write('\nFacebook und LinkedIn: keine Performance-Datenquelle angebunden. HTML-Report unter Artifacts herunterladen.\n')
+                f.write(f'- `@{source["account"]}`: {source["status"]}, {source["count"]} Beiträge\n')
+            f.write(f'\nLinkedIn-Testbetrieb: {len(linkedin["items"])} öffentliche Beiträge im Report (30-Tage-Fenster).\n')
+            for source in linkedin['sources']:
+                f.write(f'- LinkedIn `{source["account"]}`: {source["status"]}, {source["count"]} Beiträge\n')
+            f.write('\nFacebook deaktiviert. LinkedIn ist ein öffentlicher Testbetrieb, keine vollständige Branchenanalyse. HTML-Report unter Artifacts herunterladen.\n')
     if not rows:
         print('::error::Keine Instagram-Beiträge abrufbar. Report und diagnostics.json enthalten den Status.')
         raise SystemExit(1)

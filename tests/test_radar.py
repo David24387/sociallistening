@@ -40,6 +40,7 @@ class RadarTests(unittest.TestCase):
         result=render(dict(items=[row],date='05.11.2026',total_posts=1,sources=[],generated_at=NOW.isoformat()))
         self.assertNotIn('<script>',result)
         self.assertIn('Noch kein belastbarer Vergleichswert',result)
-        self.assertIn('Facebook und LinkedIn',result)
+        self.assertIn('LinkedIn · öffentlicher Testbetrieb',result)
+        self.assertIn('Facebook ist auf Wunsch deaktiviert',result)
     def test_invalid_handle_before_network(self):
         with self.assertRaises(SourceError): api('bad){id}','secret','123','v26.0')
