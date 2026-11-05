@@ -1,0 +1,6 @@
+{
+  "brands": ["ATU", "Vergölst", "pitstop", "Premio Reifen", "First Stop Reifen", "Carglass", "Michelin", "Continental Reifen", "ADAC", "ÖAMTC"],
+  "topics": ["Winterreifen", "Reifenverschleiß", "Autoglas", "Werkstatt Tipps"],
+  "max_queries": 18,
+  "max_results": 10
+}

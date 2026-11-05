@@ -1,0 +1,43 @@
+name: Daily Content Radar
+on:
+  schedule:
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: daily-content-radar
+  cancel-in-progress: false
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/cache/restore@v4
+        with:
+          path: state
+          key: listening-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: listening-
+      - run: python -m unittest discover -s tests -v
+      - run: python listening.py --send
+        env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          MAIL_FROM: ${{ secrets.MAIL_FROM }}
+          MAIL_TO: ${{ secrets.MAIL_TO }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: content-report-${{ github.run_id }}
+          path: reports/
+          retention-days: 30
+      - uses: actions/cache/save@v4
+        with:
+          path: state
+          key: listening-${{ github.run_id }}-${{ github.run_attempt }}
