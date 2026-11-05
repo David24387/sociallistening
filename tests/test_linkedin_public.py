@@ -42,3 +42,15 @@ class DistributionTests(unittest.TestCase):
         from linkedin_public import select_posts
         rows=[{'account':'ADAC','caption':'Reifen prüfen','age_hours':100,'interactions':10000}]
         self.assertEqual(select_posts(rows,2),[])
+
+class BaselineBudgetTests(unittest.TestCase):
+    def test_initial_sample_expanded_not_threshold_lowered(self):
+        from linkedin_public import needs_baseline
+        urls=[f'post{i}' for i in range(10)]
+        inspected={url:{'post':{'interactions':10}} for url in urls[:3]}
+        self.assertTrue(needs_baseline({'company':urls},inspected))
+        inspected.update({url:{'post':{'interactions':10}} for url in urls[:8]})
+        self.assertFalse(needs_baseline({'company':urls},inspected))
+    def test_single_seed_does_not_force_bootstrap_forever(self):
+        from linkedin_public import needs_baseline
+        self.assertFalse(needs_baseline({'one_seed':['one']},{}))

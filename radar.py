@@ -158,6 +158,7 @@ def main():
     report['quality']['linkedin_qualified_before_editorial']=sum(r.get('top_performer',False) for r in linkedin_raw)
     report['quality']['qualified_but_previously_reported']=sum(r.get('top_performer',False) and not r.get('eligible_for_report',True) for r in rows+linkedin_raw)
     report['quality']['qualified_without_transfer']=sum(r.get('top_performer',False) and r.get('eligible_for_report',True) and not adaptation_for_diagnostics(r) for r in rows+linkedin_raw)
+    report['quality']['linkedin_candidate_examples']=[{k:r.get(k) for k in ('account','url','published_at','format','interactions','performance_reason','benchmark_n','benchmark_factor','benchmark_percentile')} for r in linkedin_raw]
     report['quality']['candidate_examples']=[{k:r.get(k) for k in ('account','url','published_at','interactions','performance_reason','benchmark_n','benchmark_factor','benchmark_percentile','editorial_status')} for r in sorted(rows+linkedin_raw,key=lambda r:r.get('benchmark_factor') or 0,reverse=True)[:25]]
     if os.environ.get('GITHUB_RUN_ID'):
         report['diagnostics_url']='https://github.com/David24387/sociallistening/actions/runs/'+os.environ['GITHUB_RUN_ID']
@@ -174,6 +175,7 @@ def main():
             for source in sources:
                 f.write(f'- `@{source["account"]}`: {source["status"]}, {source["count"]} Beiträge\n')
             f.write(f'\nLinkedIn: {len(linkedin["items"])} qualifizierte starke öffentliche Beiträge im Report (letzte 30 Tage).\n')
+            f.write(f'Geprüfte Einzelbeiträge: {linkedin.get("checked_posts",0)}. Vergleichsbasis erweitern: {"ja" if linkedin.get("baseline_refresh") else "nein"}.\n')
             for source in linkedin['sources']:
                 f.write(f'- LinkedIn `{source["account"]}`: {source["status"]}, {source["count"]} Beiträge\n')
             f.write('\nQualitätsfilter: mindestens 1,5× Median, oberste 20 %, mindestens 50 Interaktionen, mindestens 5 Vergleichsposts. Ohne Beleg kein Reporteintrag.\n')

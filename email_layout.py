@@ -85,6 +85,18 @@ def render(report):
         intro='Heute konnten die Beiträge nicht ausgewertet werden.' if report.get('data_status')=='unavailable' else 'Heute keine neuen Empfehlungen mit ausreichend belegter überdurchschnittlicher Resonanz.'
         lead=f'<tr><td style="padding:28px;font:15px/1.7 Arial,sans-serif;color:{INK};"><b>{e(intro)}</b><br><br>Die beobachteten Quellen werden täglich erneut geprüft. Bereits berichtete Beiträge werden nur bei deutlichem Wachstum erneut aufgenommen.</td></tr>'
     body=''.join(card(row,i+1) for i,row in enumerate(rows))
+    li_report=report.get('linkedin',{})
+    if not li and li_report.get('checked_posts') is not None:
+        checked=li_report['checked_posts']
+        reasons=report.get('quality',{}).get('linkedin_rejections',{})
+        insufficient=sum(count for reason,count in reasons.items() if reason.startswith('Zu wenig Vergleichsdaten'))
+        if checked==0:
+            li_note='Heute waren keine auswertbaren LinkedIn-Beiträge erreichbar.'
+        elif insufficient:
+            li_note=f'{checked} Beiträge geprüft. Für eine belastbare Empfehlung fehlen noch Vergleichsdaten; die Vergleichsbasis wird weiter aufgebaut.'
+        else:
+            li_note=f'{checked} Beiträge geprüft. Heute erfüllt kein neuer Beitrag die Auswahlkriterien für eine Empfehlung.'
+        body+=f'<tr><td style="padding:0 28px 22px;font:14px/1.6 Arial,sans-serif;color:{MUTED};"><b>LinkedIn heute</b><br>{e(li_note)}</td></tr>'
     diagnostics=report.get('diagnostics_url','')
     details=f'<br><a href="{e(diagnostics,quote=True)}" style="color:{BLUE};">Technische Details zum Lauf</a>' if diagnostics.startswith('https://github.com/') else ''
     footer=f'''<tr><td style="padding:12px 28px 28px;font:12px/1.7 Arial,sans-serif;color:{MUTED};">{e(source_note(report,rows))}<br><br><b>Zur Einordnung:</b> Die Auswahl bewertet sichtbare Interaktionen, keine Reichweite oder Verkäufe. Ideen entstehen aus Text und Format; Bilder und Videos bitte vor Umsetzung im Original prüfen. „Best of 30 Tage“ kennzeichnet ältere Beispiele.{details}<br><br>Automatisches Tagesbriefing · täglich morgens · EUROMASTER Content Radar</td></tr>'''
@@ -96,5 +108,7 @@ def plain(report):
     if not rows:lines.append('Heute konnten die Beiträge nicht ausgewertet werden.' if report.get('data_status')=='unavailable' else 'Heute keine neuen Empfehlungen mit ausreichend belegter Resonanz.')
     for i,row in enumerate(rows,1):
         lines.extend([f'{i}. {heading(row)}',f'{row["platform"]} · {row["account"]} · {date_label(row)}',f'{number(row.get("likes"))} Reaktionen · {number(row.get("comments"))} Kommentare','Warum ausgewählt: '+proof(row),'Idee für Euromaster: '+row['adaptation'].get('idea',''),row.get('url',''),''])
+    if not any(r['platform']=='LinkedIn' for r in rows) and report.get('linkedin',{}).get('checked_posts') is not None:
+        lines.append(f'LinkedIn: {report["linkedin"]["checked_posts"]} Beiträge geprüft, heute keine qualifizierte Empfehlung; Details in der HTML-Version.')
     lines.extend([source_note(report,rows),'Ideen aus Text und Format; Bilder und Videos vor Umsetzung prüfen.','Automatisch täglich morgens.'])
     return '\n'.join(lines)

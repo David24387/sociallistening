@@ -68,3 +68,16 @@ class DailyPipelineTests(unittest.TestCase):
             finally:os.chdir(old)
     def test_daily_mail_even_without_new_recommendation(self):self.run_case()
     def test_source_outage_mail_before_failed_run(self):self.run_case(True)
+
+class LinkedInStatusTests(unittest.TestCase):
+    def test_missing_comparison_not_hidden_or_called_testbetrieb(self):
+        d=report();d['linkedin']['items']=[];d['linkedin']['checked_posts']=17
+        d['quality']={'linkedin_rejections':{'Zu wenig Vergleichsdaten (3/5)':14}}
+        result=render(d)
+        self.assertIn('LinkedIn heute',result)
+        self.assertIn('17 Beiträge geprüft',result)
+        self.assertIn('fehlen noch Vergleichsdaten',result)
+        self.assertNotIn('Testbetrieb',result)
+    def test_zero_access_not_presented_as_no_good_posts(self):
+        d=report();d['linkedin']['items']=[];d['linkedin']['checked_posts']=0
+        self.assertIn('keine auswertbaren LinkedIn-Beiträge erreichbar',render(d))

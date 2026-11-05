@@ -67,3 +67,11 @@ Betreff: „Euromaster | Eure Content-Inspiration – Datum“. Instagram und Li
 Layout: maximal 640 Pixel, einspaltige Tabellen mit Inline-Stilen und großer Schrift für E-Mail-Clients; zusätzlich vollständige Klartextversion. Es wird auch an Tagen ohne neue qualifizierte Treffer ein kurzes Tagesbriefing erzeugt und gesendet. Sind gar keine Beitragsdaten erreichbar, wird das ausdrücklich als Erfassungsstörung gekennzeichnet; bei vorhandener Mailkonfiguration wird dieser Statusbericht vor dem fehlerhaften Laufabschluss versendet. Das ist keine Zusage bei einem Ausfall von GitHub oder GMX selbst.
 
 Der bestehende Zeitplan bleibt täglich 06:17 UTC, inklusive Wochenende (07:17 MEZ / 08:17 MESZ), an beide konfigurierten Firmenempfänger. Manuelle Testläufe senden zusätzlich. Alle Zugangsdaten und Auswahlregeln bleiben unverändert. Die neue MIME-Mail wurde mit zwei Empfängern, HTML und Klartext ohne echten Versand getestet; Darstellung in der tatsächlichen Firmen-Gmail nach dem nächsten Lauf prüfen.
+
+## LinkedIn-Vergleichsbasis gezielt aufbauen
+
+Im geprüften Lauf vom 05.11.2026 waren 5 Instagram- und 0 LinkedIn-Posts ausgewählt. Bei 14 von 17 gelesenen LinkedIn-Posts fehlten vergleichbare Posts; 3 lagen außerhalb des 30-Tage-Fensters. Die Mail hatte deshalb tatsächlich keine LinkedIn-Empfehlung.
+
+Der Abruf liest nun bis zu 10 öffentliche Beitragslinks pro Unternehmensseite. Solange Quellen mit mindestens 5 bekannten Links weniger als 8 ausgelesene Postdatensätze mit Kennzahlen haben, wird ein größerer Abruf mit bis zu 60 Einzelposts versucht; danach bis zu 30. Das erweitert die reale Vergleichsbasis, nicht die Performance-Schwellen. Einmalige Startlinks erzwingen keinen dauerhaften Basisausbau. Weiterhin maximal 8 Unternehmensseiten, kein Umgehen von Zugangssperren. Workflow-Limit auf 30 Minuten erhöht, damit Timeouts einzelner Quellen den Basisaufbau nicht vorzeitig abbrechen.
+
+Die Mail zeigt bei fehlenden LinkedIn-Empfehlungen jetzt kurz „LinkedIn heute“ mit der Anzahl geprüfter Posts. Fehlende Vergleichsdaten und nicht erreichbare Beitragsdaten werden unterschiedlich erklärt. Kein künstlicher LinkedIn-Mindestanteil. Der nächste Live-Lauf muss bestätigen, wie viele zusätzliche Postdaten erreichbar sind und ob Beiträge anschließend die unveränderten Qualitätsschwellen erfüllen.

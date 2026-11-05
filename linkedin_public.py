@@ -130,6 +130,16 @@ def prioritize_links(group,inspected,discovered):
     return latest+fresh+refresh+backlog
 
 
+def needs_baseline(groups,inspected):
+    for group in groups.values():
+        # A one-off seed/person is not a company comparison source.
+        if len(group)<5:continue
+        records=[inspected.get(url,{}).get('post') for url in group]
+        if sum(bool(row and row.get('interactions') is not None) for row in records)<8:
+            return True
+    return False
+
+
 def collect(config,now):
     settings=config.get('linkedin',{})
     if not settings.get('enabled',False):return {'items':[],'sources':[],'discovery':'deaktiviert'}
@@ -145,7 +155,7 @@ def collect(config,now):
         try:
             parser=PageParser();parser.feed(fetch(url))
             links=list(dict.fromkeys(parser.posts))
-            discovered.extend(links[:8])
+            discovered.extend(links[:10])
             sources.append({'account':url,'status':'OK' if links else 'EINGESCHRÄNKT','count':len(links),'error':'' if links else 'Keine Beitragslinks im öffentlichen Abruf; neue Beiträge hier nicht entdeckt.'})
         except PublicPageError as exc:
             sources.append({'account':url,'status':'FEHLER','count':0,'error':str(exc)})
@@ -159,7 +169,11 @@ def collect(config,now):
     # Re-read the latest public company cards every day. Uninspected links come first;
     # then refresh current cards to measure growing resonance. No random rotation.
     queues=[prioritize_links(group,inspected,discovered) for group in groups.values()]
-    work=round_robin(queues,settings.get('max_posts_per_run',18))
+    bootstrap=needs_baseline(groups,inspected)
+    # First build a real comparison sample instead of weakening the quality gate.
+    # Public cards expose at most about ten posts per company; read across companies.
+    budget=settings.get('bootstrap_max_posts',60) if bootstrap else settings.get('max_posts_per_run',30)
+    work=round_robin(queues,budget)
     rows=[]
     for url in work:
         try:
@@ -173,7 +187,7 @@ def collect(config,now):
     state.write_text(json.dumps(all_urls,indent=2),encoding='utf-8')
     inspected={u:v for u,v in inspected.items() if (now-datetime.fromisoformat(v['at'])).days<90}
     inspected_path.write_text(json.dumps(inspected,indent=2),encoding='utf-8')
-    return {'items':rows,'baseline_rows':[v['post'] for v in inspected.values() if 'post' in v and (now-datetime.fromisoformat(v['published_at'])).days<=90],'sources':sources,'discovery':'Best effort: öffentliche Unternehmensseiten; Startlinks sind manuell recherchiert, keine garantierte tägliche Neuentdeckung.'}
+    return {'items':rows,'baseline_refresh':bootstrap,'attempted_posts':len(work),'baseline_rows':[v['post'] for v in inspected.values() if 'post' in v and (now-datetime.fromisoformat(v['published_at'])).days<=90],'sources':sources,'discovery':'Best effort: öffentliche Unternehmensseiten; Startlinks sind manuell recherchiert, keine garantierte tägliche Neuentdeckung.'}
 
 def render_section(report):
     e=html.escape
