@@ -92,15 +92,15 @@ def render(report):
     ideas = ''.join('<li>' + esc(idea) + '</li>' for _, idea in IDEAS)
     return f'''<!doctype html><html lang="de"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Euromaster Content Radar</title><style>body{{margin:0;background:#f2f5fa;font:16px/1.6 Arial,sans-serif;color:#172b4d}}main{{max-width:900px;margin:auto;padding:28px}}header{{background:#164194;color:white;padding:28px;border-bottom:8px solid #fedd00;border-radius:16px}}h1{{margin:0;font-size:32px}}h2{{font-size:20px}}a{{color:#164194}}article,section{{background:white;padding:24px;margin-top:18px;border-radius:12px}}.muted,small{{color:#596579}}.notice{{background:#fff7cf;padding:18px;border-radius:12px}}</style><main><header><h1>Content Radar</h1><p>EUROMASTER · {esc(report['date'])}</p></header><p class="notice">Kostenlose Content-Recherche: öffentlich indexierte Fundstücke, keine vollständige Plattformabdeckung. „Neu“ bedeutet erstmals gefunden, nicht neu veröffentlicht. Keine Rangliste erfolgreicher Posts: Likes, Reichweite und bezahlte Verbreitung sind unbekannt.</p><p>{len(report['items'])} neue Fundstücke · {report['total_found']} passende Suchtreffer · {len(report['errors'])} Quellenfehler</p>{content}<section><h2>Redaktionelle Ansätze für Euromaster</h2><p>Allgemeine Vorschläge, keine aus Performance abgeleiteten Trends:</p><ul>{ideas}</ul></section><section><h2>Datenqualität</h2><p>Quelle: öffentliche Bing-Suchfeeds. Reihenfolge nach Themenrelevanz. Veröffentlichungsdaten unbestätigt. Fehlende Kennzahlen bleiben unbekannt.</p><p>{esc(json.dumps(report['errors'], ensure_ascii=False)) if report['errors'] else 'Keine technischen Quellenfehler gemeldet.'}</p></section></main></html>'''
 
-def send_mail(report_html, date):
+def send_mail(report_html, date, plain_text=None):
     required = ('SMTP_HOST', 'SMTP_USER', 'SMTP_PASSWORD', 'MAIL_FROM', 'MAIL_TO')
     if not all(os.environ.get(key) for key in required):
         print('Mail nicht versendet: SMTP-Konfiguration unvollständig.')
         return False
     msg = EmailMessage()
-    msg['Subject'] = 'Euromaster Content Radar – ' + date
+    msg['Subject'] = 'Euromaster | Eure Content-Inspiration – ' + date
     msg['From'], msg['To'] = os.environ['MAIL_FROM'], os.environ['MAIL_TO']
-    msg.set_content('Der heutige Content-Report ist in der HTML-Version dieser E-Mail enthalten.')
+    msg.set_content(plain_text or 'Der heutige Content-Report ist in der HTML-Version dieser E-Mail enthalten.')
     msg.add_alternative(report_html, subtype='html')
     with smtplib.SMTP(os.environ['SMTP_HOST'], int(os.environ.get('SMTP_PORT') or '587'), timeout=30) as smtp:
         smtp.starttls(context=ssl.create_default_context())
