@@ -23,8 +23,10 @@ jobs:
           key: listening-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: listening-
       - run: python -m unittest discover -s tests -v
-      - run: python listening.py --send
+      - run: python radar.py --send
         env:
+          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+          INSTAGRAM_ACCOUNT_ID: ${{ secrets.INSTAGRAM_ACCOUNT_ID }}
           SMTP_HOST: ${{ secrets.SMTP_HOST }}
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
           SMTP_USER: ${{ secrets.SMTP_USER }}
