@@ -18,7 +18,7 @@
     "Werkstatt Tipps"
   ],
   "max_queries": 18,
-  "max_results": 12,
+  "max_results": 5,
   "instagram_accounts": [
     "adac",
     "oeamtc",
@@ -46,6 +46,15 @@
       "https://de.linkedin.com/posts/eugen-maile-851907130_gestern-7-uhr-ich-hab-gestern-meine-reifen-activity-7519350244342390784-_dmF"
     ],
     "max_posts_per_run": 18,
-    "max_report_posts": 8
-  }
+    "max_report_posts": 3
+  },
+  "performance": {
+    "min_peers": 8,
+    "min_interactions": 100,
+    "min_factor": 2
+  },
+  "inspiration_accounts": [
+    "hornbach_de",
+    "ikeadeutschland"
+  ]
 }

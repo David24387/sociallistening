@@ -28,7 +28,7 @@ class LinkedInTests(unittest.TestCase):
         row=parse_post(page(),URL,NOW)
         result=render_section({'items':[row],'sources':[]})
         self.assertNotIn('<script>',result)
-        self.assertIn('unbekannt',result)
+        self.assertIn('Heute kein neuer LinkedIn-Beitrag',result)
 
 class DistributionTests(unittest.TestCase):
     def test_companies_with_encoded_names(self):
@@ -38,10 +38,7 @@ class DistributionTests(unittest.TestCase):
     def test_balanced_fetch_budget(self):
         from linkedin_public import round_robin
         self.assertEqual(round_robin([list(range(10)),['other']],3),[0,'other',1])
-    def test_report_diversity_and_topics(self):
+    def test_no_report_without_performance_proof(self):
         from linkedin_public import select_posts
-        rows=[{'account':'ADAC','caption':'Reifen prüfen','age_hours':20,'interactions':10000} for _ in range(8)]
-        rows += [{'account':'ATU','caption':'Werkstatt Tipps','age_hours':20,'interactions':10}]
-        self.assertEqual({r['account'] for r in select_posts(rows,2)},{'ADAC','ATU'})
-        rows=[{'account':'ADAC','caption':'Datenschutzkonferenz','age_hours':20,'interactions':10000},{'account':'ADAC','caption':'Reifen prüfen','age_hours':20,'interactions':20}]
-        self.assertEqual(select_posts(rows,1)[0]['caption'],'Reifen prüfen')
+        rows=[{'account':'ADAC','caption':'Reifen prüfen','age_hours':100,'interactions':10000}]
+        self.assertEqual(select_posts(rows,2),[])

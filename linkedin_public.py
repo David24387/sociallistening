@@ -9,6 +9,7 @@ import urllib.request
 from datetime import datetime, timezone
 from html.parser import HTMLParser
 from pathlib import Path
+from performance import evidence,choose
 
 class PublicPageError(Exception):
     pass
@@ -86,7 +87,7 @@ def parse_post(document,url,now):
             follow=author.get('interactionStatistic',{})
             if isinstance(follow,dict) and str(follow.get('interactionType','')).endswith('FollowAction'):
                 followers=integer(follow.get('userInteractionCount'))
-        return {'id':'linkedin:'+expected,'account':author.get('name','LinkedIn') if isinstance(author,dict) else str(author),'platform':'LinkedIn','followers':followers,'caption':node.get('description') or node.get('articleBody',''),'url':url,'published_at':date.isoformat(),'age_hours':round((now-date).total_seconds()/3600,1),'format':'VIDEO' if node.get('@type')=='VideoObject' else 'POST','likes':likes,'comments':comments,'interactions':likes+comments if likes is not None and comments is not None else None,'source':'Öffentlicher Seiteninhalt (JSON-LD)','fetched_at':now.isoformat()}
+        return {'id':'linkedin:'+expected,'account':author.get('name','LinkedIn') if isinstance(author,dict) else str(author),'platform':'LinkedIn','followers':followers,'caption':node.get('description') or node.get('articleBody',''),'url':url,'published_at':date.isoformat(),'age_hours':round((now-date).total_seconds()/3600,1),'format':'VIDEO' if node.get('@type')=='VideoObject' else ('CAROUSEL_ALBUM' if isinstance(node.get('image'),list) and len(node['image'])>1 else 'IMAGE' if node.get('image') else 'TEXT' if node.get('@type')=='SocialMediaPosting' else 'UNKNOWN'),'likes':likes,'comments':comments,'interactions':likes+comments if likes is not None and comments is not None else None,'source':'Öffentlicher Seiteninhalt (JSON-LD)','fetched_at':now.isoformat()}
     raise PublicPageError('Keine passenden öffentlichen Beitragsdaten: Anmeldeseite, Prüfseite oder geändertes Seitenformat.')
 
 class SafeRedirect(urllib.request.HTTPRedirectHandler):
@@ -115,18 +116,8 @@ def round_robin(queues,limit):
                 chosen.append(queue.pop(0))
     return chosen
 
-def select_posts(rows,limit=8):
-    groups={}
-    words=('reifen','werkstatt','autoglas','steinschlag','brems','fuhrpark','flotte','pannen','verkehr','auto','mobilität')
-    for row in rows:
-        if row['age_hours']<=168 and row.get('eligible_for_report',True):
-            row['topic_relevance']=sum(word in row['caption'].lower() for word in words)
-            groups.setdefault(row['account'],[]).append(row)
-    for group in groups.values():
-        group.sort(key=lambda r:(r['topic_relevance']>0,r.get('first_report',True),r['interactions'] is not None,r['interactions'] or 0),reverse=True)
-    # Prioritize accounts with relevant content while preserving account diversity.
-    queues=sorted(groups.values(),key=lambda g:g[0]['topic_relevance']>0,reverse=True)
-    return round_robin(queues,limit)
+def select_posts(rows,limit=3):
+    return choose(rows,limit)
 
 
 def prioritize_links(group,inspected,discovered):
@@ -172,7 +163,7 @@ def collect(config,now):
     for url in work:
         try:
             row=parse_post(fetch(url),url,now);rows.append(row)
-            inspected[url]={'at':now.isoformat(),'interactions':row['interactions'],'published_at':row['published_at']}
+            inspected[url]={'at':now.isoformat(),'interactions':row['interactions'],'published_at':row['published_at'],'post':row}
             sources.append({'account':url,'status':'OK','count':1})
         except PublicPageError as exc:
             sources.append({'account':url,'status':'FEHLER','count':0,'error':str(exc)})
@@ -181,15 +172,19 @@ def collect(config,now):
     state.write_text(json.dumps(all_urls,indent=2),encoding='utf-8')
     inspected={u:v for u,v in inspected.items() if (now-datetime.fromisoformat(v['at'])).days<90}
     inspected_path.write_text(json.dumps(inspected,indent=2),encoding='utf-8')
-    return {'items':rows,'sources':sources,'discovery':'Best effort: öffentliche Unternehmensseiten; Startlinks sind manuell recherchiert, keine garantierte tägliche Neuentdeckung.'}
+    return {'items':rows,'baseline_rows':[v['post'] for v in inspected.values() if 'post' in v and (now-datetime.fromisoformat(v['published_at'])).days<=90],'sources':sources,'discovery':'Best effort: öffentliche Unternehmensseiten; Startlinks sind manuell recherchiert, keine garantierte tägliche Neuentdeckung.'}
 
 def render_section(report):
     e=html.escape
     cards=[]
     for row in report.get('items',[]):
+        if not row.get('top_performer') or not row.get('adaptation'):continue
         title=row['caption'].split('\n')[0][:160]
         likes=str(row['likes']) if row['likes'] is not None else 'unbekannt'
         comments=str(row['comments']) if row['comments'] is not None else 'unbekannt'
-        cards.append(f'<article><small>{e(row.get('editorial_status','Öffentlicher Fund'))} · LinkedIn · {e(row["account"])} · veröffentlicht {e(row["published_at"][:10])}</small><h2><a href="{e(row["url"],quote=True)}">{e(title)}</a></h2><p>{e(row["caption"][:900]).replace(chr(10),"<br>")}</p><p><b>{likes} öffentliche Reaktionen · {comments} Kommentare</b></p><p class="muted">Öffentliche Metadaten, keine offizielle Analytics-API. Kennzahlen können unvollständig oder verzögert sein. Kein belegter Performance-Vorsprung. Abruf: {e(row["fetched_at"])}</p></article>')
+        proof = evidence(row) if row.get('top_performer') else 'Kein qualifizierter Top-Performer.'
+        adopt = row.get('adaptation') or {}
+        adoption='<p><b>Übertragbares Muster:</b> '+e(adopt.get('pattern',''))+'</p><p><b>Für Euromaster:</b> '+e(adopt.get('idea',''))+'</p><p class="muted">'+e(adopt.get('basis',''))+'</p>'
+        cards.append(f'<article><small>{e(row.get('editorial_status','Öffentlicher Fund'))} · LinkedIn · {e(row["account"])} · veröffentlicht {e(row["published_at"][:10])}</small><h2><a href="{e(row["url"],quote=True)}">{e(title)}</a></h2><p>{e(row["caption"][:900]).replace(chr(10),"<br>")}</p><p><b>{likes} öffentliche Reaktionen · {comments} Kommentare</b></p><p><b>Warum im Report:</b> {e(proof)}</p>{adoption}<p class="muted">Öffentliche Metadaten, keine offizielle Analytics-API. Kennzahlen können unvollständig oder verzögert sein. Paid-Einsatz, Reichweite und Conversion unbekannt. Abruf: {e(row["fetched_at"])}</p></article>')
     status=''.join(f'<li>{e(s["account"])}: {e(s["status"])} {e(s.get("error",""))}</li>' for s in report.get('sources',[]))
-    return '<section><h2>LinkedIn · öffentlicher Testbetrieb</h2><p>Tagesauswahl aus den letzten 7 Tagen. Bereits berichtete Beiträge erscheinen an Folgetagen nur bei deutlichem Interaktionszuwachs. Keine vollständige Branchenabdeckung und kein Vergleich mit Instagram. Accounts werden abwechselnd berücksichtigt; innerhalb eines Accounts werden Themenbezug und sichtbare Interaktionen bevorzugt. Kein altersbereinigter Erfolgsvergleich. '+e(report.get('discovery',''))+'</p></section>'+(''.join(cards) or '<article>Keine neuen oder deutlich gewachsenen LinkedIn-Beiträge für diese Tagesauswahl. Quellenstatus unten beachten.</article>')+'<section><h2>LinkedIn-Quellenstatus</h2><ul>'+status+'</ul></section>'
+    return '<section><h2>LinkedIn · öffentlicher Testbetrieb</h2><p>Nur qualifizierte Ausreißer im Alter von 2–7 Tagen; mindestens 8 Vergleichsposts desselben Accounts und Formats, 2× Median, oberste 10 % und mindestens 100 Interaktionen. Bereits berichtete Beiträge erscheinen an Folgetagen nur bei deutlichem Interaktionszuwachs. Keine vollständige Branchenabdeckung und kein Vergleich mit Instagram. Keine Auffüllung ohne Benchmark. Vergleichsmodus steht beim Beitrag; ohne ausreichende Historie kann dieser Abschnitt leer bleiben. '+e(report.get('discovery',''))+'</p></section>'+(''.join(cards) or '<article>Heute kein neuer LinkedIn-Beitrag mit ausreichenden Vergleichsdaten und erfüllten Top-Performer-Schwellen. Quellenstatus unten beachten.</article>')+'<section><h2>LinkedIn-Quellenstatus</h2><ul>'+status+'</ul></section>'

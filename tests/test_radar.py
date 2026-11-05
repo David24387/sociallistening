@@ -22,7 +22,7 @@ class RadarTests(unittest.TestCase):
     def test_account_diversity_not_absolute_likes(self):
         rows=[post(i,'large',count=10000) for i in range(6)]+[post(9,'small',count=5)]
         analyze(rows,{},NOW)
-        self.assertEqual({r['account'] for r in select(rows,2)},{'large','small'})
+        self.assertEqual(select(rows,2),[])  # No forced account quota without outlier proof
     def test_history_delta(self):
         row=post(1,count=100)
         analyze([row],{'1':[{'at':'2026-11-04T12:00:00+00:00','interactions':70}]},NOW)
@@ -39,7 +39,7 @@ class RadarTests(unittest.TestCase):
         row=post(1);analyze([row],{},NOW)
         result=render(dict(items=[row],date='05.11.2026',total_posts=1,sources=[],generated_at=NOW.isoformat()))
         self.assertNotIn('<script>',result)
-        self.assertIn('Noch kein belastbarer Vergleichswert',result)
+        self.assertIn('Heute kein neuer Instagram-Beitrag',result)
         self.assertIn('LinkedIn · öffentlicher Testbetrieb',result)
         self.assertIn('Facebook ist auf Wunsch deaktiviert',result)
     def test_invalid_handle_before_network(self):

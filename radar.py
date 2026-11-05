@@ -14,6 +14,7 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 from listening import send_mail
+from performance import assess as assess_performance, choose as choose_performers, evidence
 from editorial import prepare as prepare_editorial, record as record_editorial
 from linkedin_public import collect as collect_linkedin, render_section as render_linkedin, select_posts as select_linkedin
 
@@ -101,38 +102,30 @@ def analyze(rows, history, now):
     return rows
 
 def select(rows, limit):
-    recent = [r for r in rows if r['age_hours'] <= 168 and r.get('eligible_for_report',True)]
-    # No cross-account ranking of raw like counts. First fill one slot per account,
-    # then fill remaining slots with each account's next result.
-    accounts = {}
-    for row in recent:
-        accounts.setdefault(row['account'], []).append(row)
-    for group in accounts.values():
-        group.sort(key=lambda r:(r.get('first_report',True), r['relative_score'] is not None, r['relative_score'] or 0, r['interactions'] if r['interactions'] is not None else -1), reverse=True)
-    chosen = []
-    while len(chosen) < limit and any(accounts.values()):
-        for group in accounts.values():
-            if group and len(chosen) < limit:
-                chosen.append(group.pop(0))
-    return chosen
+    return choose_performers(rows,limit)
+
 
 def render(report):
     e = html.escape
     cards = []
     for row in report['items']:
+        if not row.get('top_performer') or not row.get('adaptation'):continue
         values = lambda n: f'{n:,}'.replace(',', '.') if n is not None else 'unbekannt'
         score = row['relative_score']
-        assessment = f'{score}× des Medianwerts von {row["baseline_n"]} anderen ausgereiften Beiträgen desselben Formats und Accounts. Vorläufiger Vergleich; kein einheitliches Messalter.' if score is not None else 'Noch kein belastbarer Vergleichswert für diesen Beitrag. Auswahl innerhalb des Accounts nach sichtbaren Interaktionen.'
+        assessment = evidence(row) if row.get('top_performer') else 'Kein qualifizierter Top-Performer.'
         gain = f' · Veränderung seit ca. gestern: {row["daily_gain"]:+d}' if row['daily_gain'] is not None else ''
         date = stamp(row['published_at']).astimezone(ZoneInfo('Europe/Berlin')).strftime('%d.%m.%Y %H:%M')
         title = row['caption'].split('\n')[0][:140] or 'Instagram-Beitrag'
         rate = 100*row['interactions']/row['followers'] if row['interactions'] is not None and row['followers'] else None
         rate_text = f' · Interaktionen / aktuelle Follower: {rate:.2f} %' if rate is not None else ''
-        cards.append(f'<article><small>{e(row.get('editorial_status','Beobachtung'))} · @{e(row["account"])} · {e(row["format"])} · {date} MEZ/MESZ · {row["age_hours"]:.0f} Stunden alt</small><h2><a href="{e(row["url"], quote=True)}">{e(title)}</a></h2><p>{e(row["caption"][:1200]).replace(chr(10), "<br>")}</p><p><b>{values(row["likes"])} Likes · {values(row["comments"])} Kommentare</b>{gain}{rate_text}</p><p>{e(assessment)}</p><p class="muted">Themenhinweis: {e(", ".join(row["themes"]) or "Allgemeiner Brancheninhalt")}. Originalbild/-video über den Link ansehen.</p></article>')
+        adapt = row.get('adaptation') or {}
+        category = 'Branchenfremde Inspiration' if row.get('inspiration') else 'Automotive'
+        adoption = '<p><b>Übertragbares Muster:</b> ' + e(adapt.get('pattern','')) + '</p><p><b>Für Euromaster:</b> ' + e(adapt.get('idea','')) + '</p><p class="muted">' + e(adapt.get('basis','')) + '</p>'
+        cards.append(f'<article><small>{e(category)} · {e(row.get('editorial_status','Beobachtung'))} · @{e(row["account"])} · {e(row["format"])} · {date} MEZ/MESZ · {row["age_hours"]:.0f} Stunden alt</small><h2><a href="{e(row["url"], quote=True)}">{e(title)}</a></h2><p>{e(row["caption"][:1200]).replace(chr(10), "<br>")}</p><p><b>{values(row["likes"])} Likes · {values(row["comments"])} Kommentare</b>{gain}{rate_text}</p><p><b>Warum im Report:</b> {e(assessment)}</p>{adoption}<p class="muted">Themenhinweis: {e(", ".join(row["themes"]) or "Allgemeiner Brancheninhalt")}. Originalbild/-video über den Link ansehen.</p></article>')
     themes = Counter(theme for row in report['items'] for theme in row['themes'])
     suggestions = ''.join(f'<li><b>{e(name)}</b> ({count} ausgewählte Beiträge): {e(IDEAS[name])}</li>' for name,count in themes.most_common(3)) or '<li>Noch keine thematische Auswertung möglich.</li>'
     status = ''.join(f'<li>@{e(s["account"])}: {e(s["status"])} · {s.get("count",0)} Beiträge{": " + e(s["error"]) if s.get("error") else ""}</li>' for s in report['sources'])
-    return f'''<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>EUROMASTER Content Radar</title><style>body{{margin:0;background:#f2f5fa;font:16px/1.6 Arial,sans-serif;color:#172b4d}}main{{max-width:940px;margin:auto;padding:24px}}header{{padding:28px;background:#164194;color:white;border-bottom:8px solid #fedd00;border-radius:14px}}h1{{margin:0;font-size:34px}}h2{{font-size:21px}}a{{color:#164194}}article,section{{padding:24px;background:white;margin:20px 0;border-radius:12px}}small,.muted{{color:#596579}}.notice{{background:#fff4bd;padding:18px;border-radius:12px}}li{{margin-bottom:10px}}</style></head><body><main><header><h1>Content Radar</h1><p>EUROMASTER · {e(report['date'])}</p></header><p class="notice">Instagram: echte API-Kennzahlen. Facebook ist auf Wunsch deaktiviert. LinkedIn: öffentlicher Testbetrieb im separaten Abschnitt. Keine vollständige Branchenabdeckung.</p><p>{report['total_posts']} gelesene Beiträge · {len(report['items'])} ausgewählte Beiträge der letzten 7 Tage</p>{''.join(cards) or '<article>Keine neuen oder deutlich gewachsenen Instagram-Beiträge für diese Tagesauswahl. Quellenstatus unten prüfen.</article>'}{render_linkedin(report.get('linkedin', {}))}<section><h2>Ansätze für Euromaster</h2><p>Regelbasierte Themenhinweise aus den ausgewählten Captions und redaktionelle Vorschläge. Keine bewiesenen Erfolgsursachen oder plattformweiten Trends.</p><ul>{suggestions}</ul></section><section><h2>Quellen und Abdeckung</h2><ul>{status}</ul><p>Instagram Business Discovery, Abruf: {e(report['generated_at'])}. Bis zu 50 aktuelle Beiträge je Account; keine vollständige Pagination. Mögliche oder falsche Accountnamen werden als Fehler ausgewiesen.</p></section><section><h2>Bewertung verstehen</h2><p>Interaktionen = Likes + Kommentare. Fehlende Werte bleiben unbekannt. Vorläufige Vergleiche verwenden mindestens 5 andere Beiträge desselben Accounts und Formats, jeweils 3–90 Tage alt. Nur Beiträge im Alter von 3–7 Tagen erhalten einen Vergleichsfaktor. Unterschiedliches Messalter und bezahlte Verbreitung bleiben mögliche Einflüsse. Konten werden abwechselnd berücksichtigt; große Accounts dominieren die Auswahl nicht allein durch ihre Followerzahl.</p><p>Die Followerquote ist keine Reichweiten-Engagementrate. Reichweite, Saves, Shares und Views sind in dieser Version nicht erfasst. Tägliche Veränderungen erscheinen erst nach einem Vergleichsabruf nach ca. 24 Stunden. An Folgetagen werden bereits berichtete Beiträge nur bei mindestens 50 zusätzlichen Interaktionen und mindestens 25 % Wachstum seit ihrem letzten Report erneut hervorgehoben (mindestens 18 Stunden Abstand). Das ist eine redaktionelle Schwelle, kein statistischer Erfolgsnachweis. Neue Fundstücke sind nicht automatisch erfolgreich. Gleichentägige Testläufe dürfen dieselben Beiträge enthalten; bei Cache-Verlust sind Wiederholungen möglich.</p></section></main></body></html>'''
+    return f'''<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>EUROMASTER Content Radar</title><style>body{{margin:0;background:#f2f5fa;font:16px/1.6 Arial,sans-serif;color:#172b4d}}main{{max-width:940px;margin:auto;padding:24px}}header{{padding:28px;background:#164194;color:white;border-bottom:8px solid #fedd00;border-radius:14px}}h1{{margin:0;font-size:34px}}h2{{font-size:21px}}a{{color:#164194}}article,section{{padding:24px;background:white;margin:20px 0;border-radius:12px}}small,.muted{{color:#596579}}.notice{{background:#fff4bd;padding:18px;border-radius:12px}}li{{margin-bottom:10px}}</style></head><body><main><header><h1>Top-Performer Radar</h1><p>EUROMASTER · {e(report['date'])}</p></header><p class="notice">Instagram: echte API-Kennzahlen. Facebook ist auf Wunsch deaktiviert. LinkedIn: öffentlicher Testbetrieb im separaten Abschnitt. Keine vollständige Branchenabdeckung.</p><p>{report['total_posts']} gelesene Beiträge · {len(report['items'])} qualifizierte Instagram-Top-Performer (2–7 Tage alt)</p>{''.join(cards) or '<article>Heute kein neuer Instagram-Beitrag mit ausreichenden Vergleichsdaten und erfüllten Top-Performer-Schwellen. Keine Auffüllung mit gewöhnlichen Beiträgen. Quellenstatus unten prüfen.</article>'}{render_linkedin(report.get('linkedin', {}))}<section><h2>Ansätze für Euromaster</h2><p>Regelbasierte Themenhinweise ausschließlich aus den qualifizierten Top-Performern; redaktionelle Vorschläge. Keine bewiesenen Erfolgsursachen oder plattformweiten Trends.</p><ul>{suggestions}</ul></section><section><h2>Quellen und Abdeckung</h2><ul>{status}</ul><p>Instagram Business Discovery, Abruf: {e(report['generated_at'])}. Bis zu 50 aktuelle Beiträge je Account; keine vollständige Pagination. Mögliche oder falsche Accountnamen werden als Fehler ausgewiesen.</p></section><section><h2>Bewertung verstehen</h2><p>Interaktionen = Likes + Kommentare. Fehlende Werte bleiben unbekannt. Strenge Auswahl: mindestens 100 Interaktionen, mindestens 2× Median und oberste 10 % gegenüber mindestens 8 anderen Beiträgen desselben Accounts und Formats. Wenn genügend historische Messungen vorliegen, Vergleich im 48–72-Stunden-Fenster; sonst konservativer Vergleich mit mindestens ebenso alten Posts (maximal 90 Tage). Kandidaten sind 2–7 Tage alt. Gewinnspiele ausgeschlossen. Das sind redaktionelle Ausreißerregeln; Reichweite, Paid-Einsatz und Conversion sind unbekannt. Die Caption-/Formatregeln ersetzen keine Sichtung der Bilder oder Videos.</p><p>Die Followerquote ist keine Reichweiten-Engagementrate. Reichweite, Saves, Shares und Views sind in dieser Version nicht erfasst. Tägliche Veränderungen erscheinen erst nach einem Vergleichsabruf nach ca. 24 Stunden. An Folgetagen werden bereits berichtete Beiträge nur bei mindestens 50 zusätzlichen Interaktionen und mindestens 25 % Wachstum seit ihrem letzten Report erneut hervorgehoben (mindestens 18 Stunden Abstand). Das ist eine redaktionelle Schwelle, kein statistischer Erfolgsnachweis. Neue Fundstücke sind nicht automatisch erfolgreich. Gleichentägige Testläufe dürfen dieselben Beiträge enthalten; bei Cache-Verlust sind Wiederholungen möglich.</p></section></main></body></html>'''
 
 def main():
     parser = argparse.ArgumentParser()
@@ -149,10 +142,11 @@ def main():
     own_id = os.environ.get('INSTAGRAM_ACCOUNT_ID', '').strip()
     rows, sources = [], []
     if token and own_id:
-        for account in config['instagram_accounts']:
+        for account in config['instagram_accounts'] + config.get('inspiration_accounts', []):
             try:
                 profile = api(account, token, own_id, config.get('meta_api_version','v26.0'))
                 found = normalize(profile, now)
+                for row in found:row['inspiration']=account in config.get('inspiration_accounts',[])
                 rows.extend(found)
                 sources.append({'account':account,'status':'OK','count':len(found)})
             except SourceError as exc:
@@ -161,24 +155,35 @@ def main():
     else:
         sources.append({'account':'Instagram','status':'NICHT KONFIGURIERT','error':'META_ACCESS_TOKEN und INSTAGRAM_ACCOUNT_ID als GitHub-Secrets hinterlegen.','count':0})
     linkedin = collect_linkedin(config, now)
-    prepare_editorial(rows,reported,now.astimezone(ZoneInfo('Europe/Berlin')))
-    prepare_editorial(linkedin['items'],reported,now.astimezone(ZoneInfo('Europe/Berlin')))
-    linkedin['items'] = select_linkedin(linkedin['items'], config.get('linkedin', {}).get('max_report_posts', 8))
-    analyze(rows, history, now)
+    linkedin_raw = linkedin['items']
+    local_now = now.astimezone(ZoneInfo('Europe/Berlin'))
+    prepare_editorial(rows,reported,local_now)
+    prepare_editorial(linkedin_raw,reported,local_now)
+    analyze(rows,history,now)
+    assess_performance(rows,history,config.get('performance',{}))
+    linkedin_baseline = {r['id']:r for r in linkedin.get('baseline_rows',[])}
+    linkedin_baseline.update({r['id']:r for r in linkedin_raw})
+    assess_performance(list(linkedin_baseline.values()),history,config.get('performance',{}))
+    linkedin['items'] = choose_performers(linkedin_raw,config.get('linkedin',{}).get('max_report_posts',3))
+    linkedin.pop('baseline_rows',None)
+    linkedin['checked_posts']=len(linkedin_raw)
+    linkedin['qualified_posts']=sum(r.get('top_performer',False) for r in linkedin_raw)
     report = {'date':now.astimezone(ZoneInfo('Europe/Berlin')).strftime('%d.%m.%Y'), 'generated_at':now.isoformat(), 'total_posts':len(rows), 'sources':sources, 'items':select(rows,config.get('max_results',10)), 'linkedin':linkedin}
+    report['quality']={'instagram_rejections':dict(Counter(r['performance_reason'] for r in rows if not r.get('top_performer'))),'linkedin_rejections':dict(Counter(r['performance_reason'] for r in linkedin_raw if not r.get('top_performer')))}
     rendered = render(report)
     (output/'index.html').write_text(rendered,encoding='utf-8')
     (output/'latest.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
-    (output/'diagnostics.json').write_text(json.dumps({'instagram':sources, 'linkedin':linkedin['sources']},ensure_ascii=False,indent=2),encoding='utf-8')
+    (output/'diagnostics.json').write_text(json.dumps({'instagram':sources, 'linkedin':linkedin['sources'], 'quality':report['quality']},ensure_ascii=False,indent=2),encoding='utf-8')
     summary = os.environ.get('GITHUB_STEP_SUMMARY')
     if summary:
         with open(summary,'a',encoding='utf-8') as f:
-            f.write(f'## Instagram Content Radar\n\n{len(rows)} Beiträge gelesen; {len(report["items"])} aktuelle Beiträge im Report.\n\n')
+            f.write(f'## Instagram Content Radar\n\n{len(rows)} Beiträge gelesen; {len(report["items"])} qualifizierte Top-Performer im Report.\n\n')
             for source in sources:
                 f.write(f'- `@{source["account"]}`: {source["status"]}, {source["count"]} Beiträge\n')
-            f.write(f'\nLinkedIn-Testbetrieb: {len(linkedin["items"])} neue/auffällige öffentliche Beiträge im Report (7-Tage-Fenster).\n')
+            f.write(f'\nLinkedIn-Testbetrieb: {len(linkedin["items"])} qualifizierte öffentliche Top-Performer im Report (2–7 Tage).\n')
             for source in linkedin['sources']:
                 f.write(f'- LinkedIn `{source["account"]}`: {source["status"]}, {source["count"]} Beiträge\n')
+            f.write('\nQualitätsfilter: mindestens 2× Median, oberste 10 %, mindestens 100 Interaktionen, mindestens 8 Vergleichsposts. Ohne Beleg kein Reporteintrag.\n')
             f.write('\nFacebook deaktiviert. LinkedIn ist ein öffentlicher Testbetrieb, keine vollständige Branchenanalyse. HTML-Report unter Artifacts herunterladen.\n')
     if not rows:
         print('::error::Keine Instagram-Beiträge abrufbar. Report und diagnostics.json enthalten den Status.')
@@ -189,7 +194,7 @@ def main():
     reported_path.write_text(json.dumps(reported,ensure_ascii=False,indent=2),encoding='utf-8')
     if args.send:
         send_mail(rendered, report['date'])
-    for row in rows:
+    for row in rows+linkedin_raw:
         snapshots = history.setdefault(row['id'], [])
         if not snapshots or (now-stamp(snapshots[-1]['at'])).total_seconds() >= 3600:
             snapshots.append({'at':now.isoformat(),'interactions':row['interactions']})

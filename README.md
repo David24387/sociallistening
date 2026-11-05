@@ -1,61 +1,61 @@
-# EUROMASTER Content Radar
+# EUROMASTER Top-Performer Radar
 
-Tägliche Recherche bei beobachteten Automotive-Accounts auf Instagram und LinkedIn. Instagram nutzt Metas Business Discovery API. LinkedIn liest öffentliche Unternehmensseiten und erreichbare Einzelbeiträge ohne Login. Beide Wege haben im GitHub-Lauf echte Beiträge geliefert. Facebook wird auf Wunsch nicht weiter verfolgt. Keine kostenpflichtigen Daten- oder KI-Dienste.
+Täglicher Report mit belegbaren Ausreißern aus Instagram und öffentlich erreichbaren LinkedIn-Beiträgen. Gewöhnliche neue Beiträge werden nicht aufgenommen. Facebook ist auf Wunsch deaktiviert. Keine kostenpflichtigen Daten- oder KI-Dienste.
 
-## Einrichten und testen
+## Strenge Auswahl statt beliebiger Fundstücke
 
-[Repository-Secrets](https://github.com/David24387/sociallistening/settings/secrets/actions) → New repository secret:
+Alle Bedingungen müssen gleichzeitig erfüllt sein:
 
-| Name | Inhalt |
-| --- | --- |
-| META_ACCESS_TOKEN | Erfolgreich getesteter Facebook-Token mit instagram_basic, instagram_manage_insights, pages_read_engagement |
-| INSTAGRAM_ACCOUNT_ID | 17841403696908375 |
+- Beitrag 48 Stunden bis 7 Tage alt.
+- Vollständige sichtbare Interaktionen (Likes/Reaktionen + Kommentare), mindestens 100.
+- Mindestens 8 andere Vergleichsposts desselben Accounts und erfassten Formats; Kandidat ausgeschlossen.
+- Mindestens 2× Median dieser Vergleichsposts und mindestens das 90. Perzentil der Vergleichsstichprobe.
+- Keine erkennbaren Gewinnspiele/Verlosungen und kein unbekanntes Format.
+- Konkreter Euromaster-Transfer aus Caption oder Format ableitbar.
 
-Token niemals in Chat, Code oder Issues eintragen. Bei Ablauf oder Widerruf das Secret ersetzen. Alle Plattformzugriffe sind lesend. LinkedIn benötigt keine zusätzlichen Zugangsdaten.
+Wenn genügend Historie existiert, werden Messungen im Alter von 48–72 Stunden verglichen. Andernfalls verwenden wir Gesamtinteraktionen von Vergleichsposts, die bei ihrer Messung mindestens ebenso alt waren wie der Kandidat und höchstens 90 Tage alt sind. Das ist ein konservativer Ersatz, kein exakt altersbereinigter Test. Vergleichsmodus, Stichprobengröße, Median, Faktor und Zähler des Kandidaten stehen bei jedem ausgewählten Post.
 
-[Daily Content Radar](https://github.com/David24387/sociallistening/actions/workflows/daily.yml) → Run workflow → main. Die Laufübersicht zeigt den Quellenstatus. Unter Artifacts → content-report-… die ZIP herunterladen und index.html öffnen. latest.json und diagnostics.json enthalten Daten bzw. Fehlerstatus. Ein komplett ausgefallener Instagram-Abruf lässt den Lauf fehlschlagen; Diagnoseartefakte werden trotzdem erzeugt.
+Die Regeln identifizieren redaktionell definierte Ausreißer, keinen statistisch bewiesenen oder kausalen Erfolg. Reichweite, Views, Saves, Shares, Paid-Einsatz und Conversion sind unbekannt. Öffentliche LinkedIn-Metadaten können verzögert oder unvollständig sein. Eine hohe Reaktionszahl kann auch Kritik widerspiegeln. Vor eigener Umsetzung das Original ansehen und Tonalität/Inhalt prüfen. Die Followerquote ist keine Reichweiten-Engagementrate.
 
-## Was täglich passiert
+**Kein belastbarer Vergleich = kein Eintrag.** Daher sind leere oder kurze Tagesreports ausdrücklich zulässig. Insbesondere LinkedIn baut erst eine Vergleichshistorie auf. Höchstens 5 Instagram- und 3 LinkedIn-Beiträge, maximal 2 je Account; kein Mindestkontingent pro Quelle. Bis zu 2 branchenfremde Beispiele im Instagram-Abschnitt, nur mit konkret ableitbarem Transfer.
 
-1. Instagram: bis zu 50 aktuelle Beiträge je beobachtetem Account neu abrufen; aktuelle Zähler lesen.
-2. LinkedIn: bis zu 8 öffentliche Unternehmensseiten auf aktuelle Beitragslinks prüfen. Nicht zuvor ausgelesene Links zuerst; anschließend bekannte aktuelle Beiträge zur Beobachtung ihres Wachstums. Maximal 18 Einzelbeiträge pro Lauf. Abrufplätze werden zwischen Publishing-Handles aufgeteilt; keine zufällige Rotation älterer Beiträge mehr.
-3. Tagesauswahl auf beiden Kanälen: nur Beiträge, die höchstens 7 Tage alt sind. Erstmals berichtete Beiträge bevorzugen. Erstmals entdeckt bedeutet dabei nicht automatisch heute veröffentlicht und nicht automatisch erfolgreich.
-4. Bereits generierte Reporteinträge werden gemerkt. An Folgetagen nur erneut aufnehmen, wenn seit dem letzten Report mindestens 50 zusätzliche Interaktionen UND mindestens 25 Prozent Wachstum vorliegen; mindestens 18 Stunden Abstand. Diese redaktionellen Schwellen sind kein statistischer Erfolgsnachweis.
-5. Bis zu 12 Instagram- und 8 LinkedIn-Beiträge. Keine Auffüllung mit alten Wiederholungen: an ruhigen Tagen kann der Report kürzer oder leer sein. Manuelle Wiederholungsläufe am selben Kalendertag dürfen dieselben Beiträge zeigen.
+## Branchenfremde Inspiration und Ideen
 
-Zeitplan: täglich 06:17 UTC = 07:17 MEZ / 08:17 MESZ. GitHub kann verzögern und Zeitpläne nach 60 Tagen ohne Repository-Aktivität deaktivieren. Dann in Actions wieder aktivieren. Der Job sucht innerhalb der konfigurierten Quellen; keine globale oder vollständige Plattformsuche.
+Neben den 8 bestätigten Automotive-Instagram-Accounts werden hornbach_de und ikeadeutschland versucht. Handles anhand offizieller Quellen recherchiert; API-Zugriff muss der nächste Lauf bestätigen. Neue Fehler stehen im Quellenstatus. Weitere Quellen können in config.json ergänzt werden.
 
-## Erfolg einordnen
+Ein Transfer nennt das erkannte Muster und einen eigenen Euromaster-Ansatz, z.B. Fehler vermeiden → Reifenlagerung; Kosten erklären → Leistungsumfang des Reifenservices; Vorher/nachher → Autoglas-Auftrag. Regeln lesen Caption und Metadaten. Es gibt **keine automatische Bild-/Videoanalyse oder frei formulierende KI-Redaktion**. Bei branchenfremden Posts ohne erkennbares Muster erfolgt kein Eintrag, selbst bei hoher Performance. Karussellstruktur ist ein Metadatenhinweis und kein Beleg für die konkrete Bilddramaturgie.
 
-Interaktionen = Likes/Reaktionen + Kommentare. Fehlende Werte bleiben unbekannt. Original-Link, Caption, Format, Datum, Zähler und Auswertungsstatus stehen im Report. Reichweite, Saves, Shares, Paid-Anteil und Views werden nicht erfasst. Die Quote bezogen auf aktuelle Follower ist keine Reichweiten-Engagementrate.
+## Tägliche Erfassung
 
-Instagram: vorläufiger Medianvergleich mit mindestens 5 anderen Posts desselben Accounts und Formats, jeweils 3–90 Tage alt. Vergleichsfaktor nur für Kandidaten im Alter von 3–7 Tagen. Unterschiedliches Messalter und bezahlte Verbreitung sind nicht kontrolliert. Nach Vergleichsabruf ca. 24 Stunden später erscheinen Tagesveränderungen.
+Instagram: bis zu 50 aktuelle Posts je Account über Meta Business Discovery, erneut bei jedem Lauf. LinkedIn: bis zu 8 öffentliche Unternehmensseiten täglich auf Beitragslinks prüfen, neue Links priorisieren, danach bekannte Posts aktualisieren. Maximal 18 Einzelabrufe je Lauf, zwischen Publishing-Handles verteilt. Keine globale oder vollständige Plattformsuche. Keine Umgehung von Login-/Prüfseiten, keine LinkedIn-Passwörter, Cookies oder Proxys. Einzelfehler bleiben sichtbar. Die 6 konfigurierten LinkedIn-Unternehmensseiten haben im GitHub-Lauf Beitragslinks geliefert, einzelne Posts können unzugänglich sein.
 
-LinkedIn: mehrere Autoren werden abwechselnd berücksichtigt; innerhalb eines Accounts werden Automotive-Themen und danach sichtbare Interaktionen bevorzugt. Kein altersbereinigter Erfolgsbenchmark. Daten stammen aus öffentlichen JSON-LD-Metadaten zum exakten Beitrag. Einzelne Zähler können fehlen, unvollständig oder verzögert sein. Unternehmensseiten können Anmelde-/Prüfseiten liefern oder nur einen Ausschnitt zeigen. Keine Umgehung von Sperren, keine Cookies oder Proxys, keine garantierte tägliche Neuentdeckung. Nicht jeder neue Beitrag innerhalb des Tages wird zwingend erfasst.
+Bekannte LinkedIn-Postdaten werden für Vergleiche über mehrere Läufe aufbewahrt. Fehlende Vergleichsdaten werden nicht durch Rohzahlen oder allgemeine Branchenmediane ersetzt. Unterschiedliche Plattformen werden nicht miteinander verglichen.
 
-Die Themenideen sind regelbasierte Hinweise aus Instagram-Captions und redaktionelle Vorschläge, keine KI-Bild-/Videoanalyse und keine bewiesenen Erfolgsursachen. Medien werden nicht kopiert, sondern im Original verlinkt.
+Berichtete Posts werden normalerweise nicht täglich wiederholt. Erneute Aufnahme nur, wenn weiterhin alle Top-Performer-Regeln gelten UND seit dem letzten generierten Report mindestens 50 zusätzliche Interaktionen und 25 % Wachstum vorliegen, bei mindestens 18 Stunden Abstand. Gleichentägige manuelle Wiederholungsläufe dürfen dieselben Posts zeigen. Cache-Verlust kann Wiederholungen verursachen.
 
-## Quellen verwalten
+Zeitplan: täglich 06:17 UTC (07:17 MEZ / 08:17 MESZ). GitHub kann verzögern oder nach 60 Tagen ohne Repository-Aktivität deaktivieren. Dann in Actions wieder aktivieren.
 
-config.json enthält instagram_accounts und linkedin.company_pages. Die Instagram-Handles aller 8 Quellen wurden im GitHub-Lauf bestätigt. Auch die sechs LinkedIn-Unternehmensseiten ADAC, ÖAMTC, Vergölst, ATU, Carglass und Ayvens lieferten im Test Beitragslinks; einzelne Postabrufe können fehlschlagen. linkedin.seed_posts sind ausdrücklich manuell recherchierte Startlinks, keine neu entdeckten Tagesfunde. Frisch aus Unternehmensseiten entdeckte Links haben Vorrang.
+## Zugang und Mail
 
-## E-Mail aktivieren
-
-Zusätzlich diese Repository-Secrets hinterlegen:
+[Repository-Secrets](https://github.com/David24387/sociallistening/settings/secrets/actions):
 
 | Secret | Inhalt |
 | --- | --- |
-| SMTP_HOST | Server des vorhandenen Mailanbieters |
-| SMTP_PORT | STARTTLS-Port, normalerweise 587 |
-| SMTP_USER | SMTP-Benutzername |
-| SMTP_PASSWORD | App-Passwort/SMTP-Passwort |
-| MAIL_FROM | Freigegebene Absenderadresse |
-| MAIL_TO | Empfängeradresse |
+| META_ACCESS_TOKEN | Facebook-Token mit instagram_basic, instagram_manage_insights und pages_read_engagement |
+| INSTAGRAM_ACCOUNT_ID | 17841403696908375 |
+| SMTP_HOST | mail.gmx.net für den eingerichteten GMX-Versand |
+| SMTP_PORT | 587 (STARTTLS) |
+| SMTP_USER | Vollständige GMX-Absenderadresse |
+| SMTP_PASSWORD | GMX-App-Passwort |
+| MAIL_FROM | Dieselbe freigegebene GMX-Adresse |
+| MAIL_TO | Empfängeradressen, durch Komma getrennt |
 
-Ohne vollständige SMTP-Secrets wird nur der Report erzeugt. Firmenkonten können SMTP sperren. Bei Versandfehlern bleibt der HTML-Report als Artifact erhalten; der Lauf ist fehlgeschlagen. Ein Wiederholungslauf kann erneut eine Mail senden.
+Mailversand über GMX an die Firmenadressen ist vom Nutzer als funktionierend bestätigt. Keine Zugangsdaten im Code, Chat oder Report speichern. Bei Ablauf/Widerruf eines Tokens Secret ersetzen. Ohne vollständige SMTP-Secrets entsteht nur der Report. Bei Versandfehlern bleibt das Artifact erhalten, der Lauf ist fehlgeschlagen. Wiederholungsläufe können erneut senden.
 
-## Speicherung und Grenzen
+## Testen und Diagnose
 
-Berichtet bedeutet: HTML-Report generiert, nicht zwingend Mail erfolgreich zugestellt. Kennzahlen, bekannte Links und Reporthistorie liegen im Actions-Cache unter state/. Cache-Verlust kann Wiederholungen verursachen und Tagesvergleiche zurücksetzen. Nach der Einführung der Reporthistorie ist ein einmaliger Neustart der Wiedererkennung zu erwarten. Reports bleiben 30 Tage als Actions-Artefakte. Keine öffentliche Report-Website. Das Repository selbst ist öffentlich; Zugangsdaten werden nur aus Secrets gelesen und weder im Report noch im Verlauf gespeichert.
+[Actions](https://github.com/David24387/sociallistening/actions/workflows/daily.yml) → Run workflow → main. Laufübersicht zeigt Quellen und Anzahl qualifizierter Beiträge. Artifact content-report-… herunterladen, ZIP entpacken, index.html öffnen. latest.json enthält die ausgewählten Posts mit Nachweisen. diagnostics.json enthält Quellenstatus und Ausschlussgründe mit Anzahlen. Reports 30 Tage aufbewahrt, keine öffentliche Report-Website.
 
-Python 3.12, Standardbibliothek. Lokal: META_ACCESS_TOKEN und INSTAGRAM_ACCOUNT_ID sicher als Umgebungsvariablen setzen, dann python radar.py, optional --send. Tests: python -m unittest discover -s tests -v. Tests verwenden synthetische Daten ohne Zugangsdaten. Neue Auswahlregeln sind getestet; ihre Wirkung im täglichen Livebetrieb muss über weitere Läufe beobachtet werden.
+Python 3.12, Standardbibliothek; lokal python radar.py, optional --send, Zugangsdaten nur aus Umgebungsvariablen. Tests: python -m unittest discover -s tests -v. Die strengen Regeln wurden mit synthetischen Daten getestet; im simulierten Gesamtlauf wurde nur 1 von 9 Posts mit 3× Median aufgenommen. Wirkung und neue Inspirationsquellen im nächsten Live-Lauf prüfen.
+
+Kennzahlenhistorie, bekannte Links, LinkedIn-Vergleichsposts und Reporthistorie liegen im Actions-Cache unter state/. Reporthistorie bedeutet generiertes HTML, nicht garantiert erfolgreich zugestellte Mail. Cache-Verlust setzt Vergleiche und Wiedererkennung zurück. Das Repository selbst ist öffentlich, die Zugangsdaten bleiben Secrets.
