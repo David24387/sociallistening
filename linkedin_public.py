@@ -149,7 +149,7 @@ def collect(config,now):
     inspected_path=Path('state/linkedin_inspected.json')
     inspected=json.loads(inspected_path.read_text()) if inspected_path.exists() else {}
     sources=[]; discovered=[]
-    for raw in settings.get('company_pages',[])[:8]:
+    for raw in settings.get('company_pages',[])[:settings.get('max_company_pages',24)]:
         url=valid_url(raw,'company')
         if not url:continue
         try:
@@ -160,7 +160,7 @@ def collect(config,now):
         except PublicPageError as exc:
             sources.append({'account':url,'status':'FEHLER','count':0,'error':str(exc)})
         time.sleep(1)
-    all_urls=list(dict.fromkeys(discovered+seeds+[u for raw in known if (u:=valid_url(raw))]))[:80]
+    all_urls=list(dict.fromkeys(discovered+seeds+[u for raw in known if (u:=valid_url(raw))]))[:settings.get('max_known_posts',240)]
     # Fair queues by publishing handle; one prolific company cannot consume the run.
     groups={}
     for url in all_urls:
