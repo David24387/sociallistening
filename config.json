@@ -27,7 +27,15 @@
     "michelin",
     "continental_reifen",
     "carglassdeutschland",
-    "pitstop.de"
+    "pitstop.de",
+    "boschcarservice_de",
+    "dekra.germany",
+    "gtue.de",
+    "hankooktire.europe",
+    "premio_tuning",
+    "pneuhage_reifen_autoservice",
+    "bestdrive_by_continental_at",
+    "arboe123"
   ],
   "meta_api_version": "v26.0",
   "linkedin": {
@@ -38,16 +46,28 @@
       "https://www.linkedin.com/company/verg%C3%B6lst/",
       "https://www.linkedin.com/company/a.t.u-auto-teile-unger-handels-gmbh-%26-co.-kg/",
       "https://www.linkedin.com/company/carglass-germany/",
-      "https://www.linkedin.com/company/ayvens/"
+      "https://www.linkedin.com/company/ayvens/",
+      "https://www.linkedin.com/company/bosch-car-service-deutschland/",
+      "https://www.linkedin.com/company/michelin/",
+      "https://www.linkedin.com/company/continental/",
+      "https://www.linkedin.com/company/dekra-germany/",
+      "https://www.linkedin.com/company/tuvsud/",
+      "https://www.linkedin.com/company/gtue/",
+      "https://www.linkedin.com/company/pneuhage-unternehmensgruppe/",
+      "https://www.linkedin.com/company/hankook-reifen-deutschland-gmbh/",
+      "https://www.linkedin.com/company/obi/",
+      "https://www.linkedin.com/company/hornbach-baumarkt-ag/"
     ],
     "seed_posts": [
       "https://de.linkedin.com/posts/adac_adac-reifentest-verkehrssicherheit-activity-7516099754896908289--8kH",
       "https://de.linkedin.com/posts/ayvens_ayvensdeutschland-fuhrparkmanagement-reifenmanagement-activity-7515669038346313729-tTsr",
       "https://de.linkedin.com/posts/eugen-maile-851907130_gestern-7-uhr-ich-hab-gestern-meine-reifen-activity-7519350244342390784-_dmF"
     ],
-    "max_posts_per_run": 30,
+    "max_posts_per_run": 80,
     "max_report_posts": 3,
-    "bootstrap_max_posts": 60
+    "bootstrap_max_posts": 128,
+    "max_company_pages": 24,
+    "max_known_posts": 240
   },
   "performance": {
     "min_peers": 5,
@@ -59,6 +79,7 @@
   },
   "inspiration_accounts": [
     "hornbach_de",
-    "ikeadeutschland"
+    "ikeadeutschland",
+    "obi_baumarkt_"
   ]
 }
