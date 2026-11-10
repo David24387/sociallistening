@@ -87,7 +87,7 @@ def adaptation(row):
         return {'pattern':'Automotive-Thema mit belegter außergewöhnlicher Resonanz','idea':'Die konkrete Kundenfrage dieses Beitrags aufgreifen und von einer Euromaster-Fachkraft an einem echten Werkstattbeispiel erklären lassen. Original vor der Umsetzung inhaltlich prüfen.','basis':'Regelbasierter Themenvorschlag; keine Medienanalyse oder bewiesene Erfolgsursache.'}
     return None
 
-def choose(rows,limit=5,max_inspiration=2,max_per_account=2):
+def choose(rows,limit=5,max_inspiration=4,max_per_account=1):
     candidates=[]
     for row in rows:
         if not row.get('top_performer') or not row.get('eligible_for_report',True):continue
