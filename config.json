@@ -18,7 +18,7 @@
     "Werkstatt Tipps"
   ],
   "max_queries": 18,
-  "max_results": 5,
+  "max_results": 8,
   "instagram_accounts": [
     "adac",
     "oeamtc",
@@ -35,7 +35,13 @@
     "premio_tuning",
     "pneuhage_reifen_autoservice",
     "bestdrive_by_continental_at",
-    "arboe123"
+    "arboe123",
+    "bmw",
+    "mercedesbenz",
+    "audi",
+    "porsche",
+    "volkswagen",
+    "skoda"
   ],
   "meta_api_version": "v26.0",
   "linkedin": {
@@ -56,7 +62,11 @@
       "https://www.linkedin.com/company/pneuhage-unternehmensgruppe/",
       "https://www.linkedin.com/company/hankook-reifen-deutschland-gmbh/",
       "https://www.linkedin.com/company/obi/",
-      "https://www.linkedin.com/company/hornbach-baumarkt-ag/"
+      "https://www.linkedin.com/company/hornbach-baumarkt-ag/",
+      "https://www.linkedin.com/company/bmw-group/",
+      "https://www.linkedin.com/company/mercedes-benz-ag/",
+      "https://www.linkedin.com/company/volkswagen-ag/",
+      "https://www.linkedin.com/company/porsche-ag/"
     ],
     "seed_posts": [
       "https://de.linkedin.com/posts/adac_adac-reifentest-verkehrssicherheit-activity-7516099754896908289--8kH",
@@ -71,9 +81,9 @@
   },
   "performance": {
     "min_peers": 5,
-    "min_interactions": 50,
-    "min_factor": 1.5,
-    "min_percentile": 80,
+    "min_interactions": 100,
+    "min_factor": 2.5,
+    "min_percentile": 90,
     "min_age_hours": 24,
     "max_age_hours": 720
   },
