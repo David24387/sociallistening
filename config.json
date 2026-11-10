@@ -88,7 +88,16 @@
       "https://www.linkedin.com/company/bridgestone/",
       "https://www.linkedin.com/company/pirelli/",
       "https://www.linkedin.com/company/robert-bosch/",
-      "https://www.linkedin.com/company/shell/"
+      "https://www.linkedin.com/company/shell/",
+      "https://www.linkedin.com/company/duolingo/",
+      "https://www.linkedin.com/company/ryanair/",
+      "https://www.linkedin.com/company/lego-group/",
+      "https://www.linkedin.com/company/ikea/",
+      "https://www.linkedin.com/company/lidl/",
+      "https://www.linkedin.com/company/decathlon/",
+      "https://www.linkedin.com/company/spotify/",
+      "https://www.linkedin.com/company/netflix/",
+      "https://www.linkedin.com/company/dm-drogerie-markt-deutschland/"
     ],
     "seed_posts": [
       "https://de.linkedin.com/posts/adac_adac-reifentest-verkehrssicherheit-activity-7516099754896908289--8kH",
@@ -98,7 +107,7 @@
     "max_posts_per_run": 80,
     "max_report_posts": 3,
     "bootstrap_max_posts": 128,
-    "max_company_pages": 24,
+    "max_company_pages": 39,
     "max_known_posts": 240
   },
   "performance": {
@@ -112,6 +121,18 @@
   "inspiration_accounts": [
     "hornbach_de",
     "ikeadeutschland",
-    "obi_baumarkt_"
+    "obi_baumarkt_",
+    "duolingo",
+    "ryanair",
+    "netflixde",
+    "spotify",
+    "lego",
+    "aldi_sued",
+    "lidl_de",
+    "dm_deutschland",
+    "decathlon",
+    "redbullracing",
+    "nasa",
+    "nationalgeographic"
   ]
 }
