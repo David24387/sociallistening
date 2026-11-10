@@ -178,7 +178,7 @@ def main():
             f.write(f'Geprüfte Einzelbeiträge: {linkedin.get("checked_posts",0)}. Vergleichsbasis erweitern: {"ja" if linkedin.get("baseline_refresh") else "nein"}.\n')
             for source in linkedin['sources']:
                 f.write(f'- LinkedIn `{source["account"]}`: {source["status"]}, {source["count"]} Beiträge\n')
-            f.write('\nQualitätsfilter: mindestens 1,5× Median, oberste 20 %, mindestens 50 Interaktionen, mindestens 5 Vergleichsposts. Ohne Beleg kein Reporteintrag.\n')
+            f.write('\nQualitätsfilter: mindestens 2,5× Median, oberste 10 %, mindestens 100 Interaktionen, mindestens 5 Vergleichsposts. Ohne Beleg kein Reporteintrag.\n')
             f.write('\nDie Mail enthält die kompakte Auswahl mit Original-Links und Euromaster-Ideen. Quellenstatus und Auswahlgründe stehen in diagnostics.json. LinkedIn umfasst öffentlich erreichbare Beiträge; keine vollständige Plattformabdeckung.\n')
     if not rows:
         print('::warning::Keine Instagram-Beiträge abrufbar. Mail enthält den Hinweis zur eingeschränkten Datengrundlage.')
