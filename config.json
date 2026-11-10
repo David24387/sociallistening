@@ -41,7 +41,19 @@
     "audi",
     "porsche",
     "volkswagen",
-    "skoda"
+    "skoda",
+    "volvocars",
+    "toyota",
+    "hyundai",
+    "kia.worldwide",
+    "ford",
+    "tesla",
+    "goodyear",
+    "bridgestone",
+    "pirelli",
+    "boschglobal",
+    "shell",
+    "redbull"
   ],
   "meta_api_version": "v26.0",
   "linkedin": {
@@ -66,7 +78,17 @@
       "https://www.linkedin.com/company/bmw-group/",
       "https://www.linkedin.com/company/mercedes-benz-ag/",
       "https://www.linkedin.com/company/volkswagen-ag/",
-      "https://www.linkedin.com/company/porsche-ag/"
+      "https://www.linkedin.com/company/porsche-ag/",
+      "https://www.linkedin.com/company/volvo-cars/",
+      "https://www.linkedin.com/company/toyota-motor-corporation/",
+      "https://www.linkedin.com/company/hyundai-motor-company/",
+      "https://www.linkedin.com/company/kia-worldwide/",
+      "https://www.linkedin.com/company/ford-motor-company/",
+      "https://www.linkedin.com/company/goodyear/",
+      "https://www.linkedin.com/company/bridgestone/",
+      "https://www.linkedin.com/company/pirelli/",
+      "https://www.linkedin.com/company/robert-bosch/",
+      "https://www.linkedin.com/company/shell/"
     ],
     "seed_posts": [
       "https://de.linkedin.com/posts/adac_adac-reifentest-verkehrssicherheit-activity-7516099754896908289--8kH",
