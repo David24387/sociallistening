@@ -118,8 +118,8 @@ def choose(rows,limit=5,max_inspiration=4,max_per_account=1):
     candidates=[]
     for row in rows:
         if not row.get('top_performer') or not row.get('eligible_for_report',True):continue
-        row['adaptation']=adaptation(row)
-        if row['adaptation']:candidates.append(row)
+        row['adaptation']=None  # Keine automatisch erfundene Euromaster-Idee.
+        candidates.append(row)
     candidates.sort(key=lambda r:(r['benchmark_factor'],r['benchmark_percentile'],r['performance_interactions']),reverse=True)
     selected=[];accounts={};inspiration=0
     for row in candidates:
