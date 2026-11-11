@@ -62,29 +62,50 @@ def assess(rows,history=None,settings=None):
     return rows
 
 def adaptation(row):
-    """Grounded caption/format patterns; no claim to have watched the video."""
-    text=row.get('caption','').lower()
-    if GIVEAWAY.search(text):return None
-    if re.search(r'datenschutzkonferenz|financial results|finanzergebnisse|quartalsergebnisse|hauptversammlung|strategic plan',text):return None
-    rules=[
-        (bool(re.search(r'award|auszeichnung|bronze|goldmedaille|silbermedaille',text)) and any(word in text for word in ('pannen','werkstatt','service')), 'Besondere Serviceleistung zeigen', 'Einen echten Euromaster-Panneneinsatz als Dreischritt erzählen: Welche Herausforderung gab es, wie hat das Team gehandelt und welches Ergebnis hatte der Kunde? Die fachliche Leistung mit konkreten Fakten belegen; keine fremde Auszeichnung übernehmen.'),
-        (bool(re.search(r'award|auszeichnung',text)), 'Anerkennung mit konkreter Leistung verbinden', 'Eine echte Auszeichnung oder belegbares Kundenlob für ein Euromaster-Team zum Anlass nehmen: Leistung und beteiligte Kolleginnen und Kollegen zeigen, statt nur einen Pokal zu posten.'),
-        (bool(re.search(r'steckbrief|teamvorstellung|azubi|ausbildung|karriere|adacjobs|mitarbeitende|mitarbeiter',text)), 'Menschen und Aufgaben sichtbar machen', 'Eine Euromaster-Fachkraft in einem kurzen Porträt vorstellen: ihre konkrete Aufgabe, eine typische Kundenfrage und was ihr am Werkstattalltag gefällt. Als eigene Recruiting-Serie mit echten Kolleginnen und Kollegen umsetzen.'),
-        (bool(re.search(r'irrt[uü]m|myth|wusstest|stimmt das|falsch gedacht',text)), 'Mythos oder Wissenslücke', '„Müssen Reifen immer paarweise ersetzt werden?“ als fachlich geprüftes Expertenformat: Frage, Erklärung am Reifen, Beratungshinweis.'),
-        (bool(re.search(r'fehler|nicht machen|vermeiden|niemals',text)), 'Fehler vermeiden', '„Drei Fehler bei der Reifenlagerung“: pro Fehler eine konkrete Erklärung und eine richtige Vorgehensweise aus dem Werkstattalltag.'),
-        ('vorher' in text and 'nachher' in text, 'Vorher–nachher', 'Einen echten Autoglas-Auftrag vor und nach dem Austausch zeigen; dazu kurz erklären, welche Arbeitsschritte und Prüfungen erforderlich waren.'),
-        (bool(re.search(r'kosten|teuer|sparen|preisvergleich|preistransparenz',text)), 'Kosten verständlich machen', '„Was gehört eigentlich zum Reifenservice?“ als transparente Leistungsübersicht mit echten Arbeitsschritten statt eines isolierten Preisversprechens.'),
-        (bool(re.search(r'schritt|anleitung|tipps|so geht|checkliste',text)), 'Praktische Anleitung', '„Reifencheck vor der nächsten Fahrt“ als kurze Schrittfolge: Zustand ansehen, Luftdruck nach Fahrzeugvorgabe prüfen, bei Auffälligkeiten Fachbetrieb kontaktieren.'),
-        (row.get('format')=='CAROUSEL_ALBUM', 'Karussellstruktur (Format nachgewiesen, Bildinhalt ungeprüft)', 'Eine eigene Wissensserie „Was Ihr Reifen verrät“: auffälliges Verschleißbild, mögliche Ursachen und nächster Prüfschritt. Die konkrete Bilddramaturgie des Originals vor Umsetzung manuell prüfen.')
-    ]
-    for matches,pattern,idea in rules:
-        if matches:return {'pattern':pattern,'idea':idea,'basis':'Regelbasiert aus Caption und Format; keine Bild-/Videoanalyse und kein bewiesener Erfolgsgrund.'}
-    if row.get('inspiration'):
-        if row.get('format')=='VIDEO' and len(text.strip())>=30:
-            return {'pattern':'Video mit eigenem Marken-Einstieg (inhaltlich nicht gesichtet)','idea':'Den Einstieg des Originalposts als Anregung prüfen und ein eigenes Euromaster-Reel entwickeln: eine typische Kundensituation vor dem Reifenwechsel, ein überraschender Werkstattmoment und eine konkrete Antwort der Fachkraft. Die Übertragbarkeit des Videoinhalts muss vor Umsetzung manuell geprüft werden.','basis':'Vorläufiger Formattransfer aus Caption und VIDEO-Metadatum; kein behaupteter Bildinhalt oder bewiesener Erfolgsgrund.'}
+    """Caption-grounded editorial transfer; never infer unseen image/video content."""
+    caption = re.sub(r'https?://\\S+|#[\\w]+|@[\\w]+', ' ', row.get('caption', '') or '')
+    text = caption.lower()
+    if GIVEAWAY.search(text) or re.search(r'datenschutzkonferenz|financial results|finanzergebnisse|quartalsergebnisse|hauptversammlung|strategic plan', text):
         return None
-    if any(w in text for w in ('reifen','werkstatt','autoglas','brems','pannen','fuhrpark','flotte','mobilität','verkehr')):
-        return {'pattern':'Automotive-Thema mit belegter außergewöhnlicher Resonanz','idea':'Die konkrete Kundenfrage dieses Beitrags aufgreifen und von einer Euromaster-Fachkraft an einem echten Werkstattbeispiel erklären lassen. Original vor der Umsetzung inhaltlich prüfen.','basis':'Regelbasierter Themenvorschlag; keine Medienanalyse oder bewiesene Erfolgsursache.'}
+
+    def has(*terms):
+        return any(re.search(term, text) for term in terms)
+
+    # Match the specific subject first, before broad storytelling formats.
+    topics = [
+        (('steinschlag', 'windschutzscheib', 'autoglas', 'scheibenreparatur'), 'Autoglas', 'Steinschlag in der Windschutzscheibe', 'Ein echtes Autoglas-Beispiel zeigen: Wann ist eine Reparatur möglich und wann muss die Scheibe ersetzt werden? Fachliche Voraussetzungen prüfen.'),
+        (('aquaplaning', 'nassbrems', 'bremsweg', 'nässe'), 'Sicherheit bei Nässe', 'Reifen und Bremsweg auf nasser Straße', 'Ein Karussell zur Frage „Was beeinflusst den Bremsweg bei Nässe?“ entwickeln: Reifenprofil, Geschwindigkeit und Abstand fachlich korrekt erklären.'),
+        (('profiltiefe', 'reifenprofil', 'abgefahren', 'reifenverschleiß', 'verschleißbild'), 'Reifenverschleiß', 'Auffälligkeiten am Reifenprofil', 'An einem echten Reifen verschiedene Verschleißbilder erklären und zeigen, wann eine fachliche Prüfung sinnvoll ist.'),
+        (('winterreifen', 'sommerreifen', 'ganzjahresreifen', 'reifenwechsel', 'räderwechsel'), 'Saisonaler Reifenwechsel', 'Passende Bereifung und Wechselzeitpunkt', 'Eine konkrete Kundenfrage zur saisonalen Bereifung als Karussell beantworten: Was ist zu beachten und wann ist ein Werkstatttermin sinnvoll? DE/AT-Regeln getrennt prüfen.'),
+        (('lkw', 'truck', 'nutzfahrzeug', 'fuhrpark', 'flotten', 'fleet'), 'Flotten- und LKW-Service', 'Reifenservice für gewerbliche Fahrzeuge', 'Einen realen Ablauf aus dem Euromaster-Flotten- oder LKW-Service zeigen: Herausforderung, Organisation und Nutzen für den Fuhrpark.'),
+        (('pannenhilfe', 'pannendienst', 'panneneinsatz', 'notdienst'), 'Pannenservice', 'Hilfe bei einer Reifenpanne', 'Einen echten Euromaster-Panneneinsatz als Dreischritt erzählen: Herausforderung, Vorgehen und Ergebnis für den Kunden.'),
+        (('batterie', 'akku', 'startproblem'), 'Batterie und Startprobleme', 'Startprobleme und Batterieprüfung', 'Eine Fachkraft erklärt anhand eines realen Beispiels, welche Anzeichen auf eine schwache Fahrzeugbatterie hindeuten und wann ein Check sinnvoll ist.'),
+        (('ausbildung', 'azubi', 'karriere', 'recruiting', 'stellenangebot', 'bewerbung'), 'Recruiting', 'Berufsalltag bei Euromaster', 'Ein kurzes Recruiting-Reel mit einer echten Fachkraft drehen: konkrete Aufgabe, überraschender Einblick und ein authentischer Grund für den Beruf.'),
+        (('werkstatt', 'monteur', 'mechaniker', 'kolleg', 'mitarbeitende', 'mitarbeiter', 'team'), 'Menschen im Service', 'Menschen hinter der Werkstattleistung', 'Eine Euromaster-Fachkraft bei einem tatsächlichen Arbeitsschritt begleiten und erklären lassen, was daran für Kunden wichtig ist.'),
+        (('reifenlagerung', 'einlagerung'), 'Reifenlagerung', 'Reifen richtig lagern', 'Drei konkrete Fehler bei der Reifenlagerung anhand echter Beispiele zeigen und die korrekte Vorgehensweise erklären.'),
+        (('luftdruck', 'reifendruck'), 'Reifendruck', 'Reifendruck richtig kontrollieren', 'Eine kurze Demonstration zur Prüfung des Reifendrucks nach Fahrzeugvorgabe erstellen und typische Missverständnisse aufklären.'),
+        (('kosten', 'teuer', 'sparen', 'preisvergleich', 'preistransparenz'), 'Kosten und Leistung', 'Leistungsumfang transparent erklären', 'Anhand eines realen Reifenservice-Auftrags erläutern, welche Arbeitsschritte zur Leistung gehören, ohne pauschale Preisversprechen.'),
+    ]
+    selected = next(((label, subject, idea) for terms, label, subject, idea in topics if has(*(re.escape(t) for t in terms))), None)
+    if selected:
+        label, subject, idea = selected
+        if has(r'award', r'auszeichnung', r'bronze', r'goldmedaille', r'silbermedaille') and has(r'pannen', r'service'):
+            idea = 'Einen echten Euromaster-Panneneinsatz als Dreischritt erzählen: Welche Herausforderung gab es, wie hat das Team gehandelt und welches Ergebnis hatte der Kunde? Die fachliche Leistung mit konkreten Fakten belegen; keine fremde Auszeichnung übernehmen.'
+            label = 'Besondere Serviceleistung zeigen'
+        elif has(r'award', r'auszeichnung') and has(r'hr', r'team', r'mitarbeit'):
+            label = 'Anerkennung mit konkreter Leistung verbinden'
+            idea = 'Eine echte Auszeichnung oder belegbares Kundenlob für ein Euromaster-Team zum Anlass nehmen: Leistung und beteiligte Kolleginnen und Kollegen zeigen, statt nur einen Pokal zu posten.'
+        elif has(r'irrt[uü]m', r'myth', r'wusstest', r'stimmt das'):
+            idea = f'Ein fachlich geprüftes Mythos-oder-Fakt-Format zum Thema „{subject}“ entwickeln: Behauptung, Erklärung und konkreter Praxistipp. ' + idea
+        elif has(r'fehler', r'nicht machen', r'vermeiden', r'niemals'):
+            idea = f'Die häufigsten Fehler rund um „{subject}“ erklären: pro Fehler eine reale Situation, die richtige Vorgehensweise und ein kurzer Werkstatttipp. ' + idea
+        elif has(r'vorher', r'nachher'):
+            idea = f'Einen echten Vorher-nachher-Fall zu „{subject}“ dokumentieren; Bildmaterial und fachliche Aussage vor Veröffentlichung prüfen. ' + idea
+        return {'pattern': label, 'idea': idea, 'basis': 'Themenbezogen aus Caption; keine Bild-/Videoanalyse und kein bewiesener Erfolgsgrund.'}
+
+    # Do not turn a generic keyword into the same recycled tire tip.
+    if has(r'award', r'auszeichnung'):
+        return {'pattern':'Anerkennung mit konkreter Leistung verbinden', 'idea':'Eine echte Auszeichnung oder belegbares Kundenlob für ein Euromaster-Team zum Anlass nehmen: Leistung und beteiligte Kolleginnen und Kollegen zeigen, statt nur einen Pokal zu posten.', 'basis':'Regelbasiert aus Caption; Original prüfen.'}
     return None
 
 def choose(rows,limit=5,max_inspiration=4,max_per_account=1):
