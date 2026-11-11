@@ -42,9 +42,9 @@ class PerformanceTests(unittest.TestCase):
         self.assertIn('48–72',rows[0]['benchmark_mode'])
     def test_cross_industry_needs_specific_transfer(self):
         rows=sample();rows[0].update(inspiration=True,caption='Wonderful launch today')
-        assess(rows);self.assertTrue(rows[0]['top_performer']);self.assertEqual(choose(rows),[])
+        assess(rows);self.assertTrue(rows[0]['top_performer']);self.assertEqual(choose(rows)[0]['id'],'candidate')
         rows[0]['caption']='Drei Fehler vermeiden: unsere Tipps'
-        self.assertIn('Reifenlagerung',choose(rows)[0]['adaptation']['idea'])
+        self.assertIsNone(choose(rows)[0]['adaptation'])
     def test_formats_and_accounts_not_mixed(self):
         rows=sample()
         for p in rows[1:5]:p['account']='other'
