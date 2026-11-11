@@ -84,7 +84,8 @@ class PublicLinkedInTests(unittest.TestCase):
         self.assertEqual(rows[0]['benchmark_factor'],4)
         self.assertEqual(rows[0]['benchmark_scope'],'verschiedene Formate')
         self.assertTrue(rows[0]['public_profile_sample'])
-        self.assertIn('Menschen',choose(rows)[0]['adaptation']['pattern'])
+        self.assertEqual(choose(rows)[0]['id'],'atu')
+        self.assertIsNone(choose(rows)[0]['adaptation'])
     def test_same_format_preferred_when_sample_sufficient(self):
         from performance import assess_public_linkedin
         rows=sample(300);assess_public_linkedin(rows)
