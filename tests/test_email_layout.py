@@ -12,10 +12,11 @@ def report():
 class EmailTests(unittest.TestCase):
     def test_readable_and_no_debug_noise(self):
         result=render(report())
-        for text in ('Eure Content-Inspiration','Warum ausgewählt','Kreative Inspiration – Original ansehen','Originalbeitrag ansehen','Instagram','LinkedIn'):
+        for text in ('Eure Content-Inspiration','Warum ausgewählt','Originalbeitrag ansehen','Originalbeitrag ansehen','Instagram','LinkedIn'):
             self.assertIn(text,result)
         for text in ('Testbetrieb','JSON-LD','API-Kennzahlen','Quellenstatus','FEHLER','48–72 Stunden nach Veröffentlichung'):
             self.assertNotIn(text,result)
+        self.assertNotIn('Kreative Inspiration – Original ansehen',result)
         self.assertIn('role="presentation"',result)
         self.assertIn('style=',result)
     def test_strongest_first_and_old_examples_labelled(self):
@@ -34,7 +35,7 @@ class EmailTests(unittest.TestCase):
         self.assertNotIn('<script>',result);self.assertNotIn('javascript:',result)
     def test_plain_version_has_real_content_and_links(self):
         result=plain(report())
-        self.assertIn('Kreative Inspiration – Original ansehen',result)
+        self.assertIn('Warum ausgewählt',result)
         self.assertIn('https://www.instagram.com/p/example/',result)
     def test_multipart_mail_to_two_recipients(self):
         env={'SMTP_HOST':'example.invalid','SMTP_USER':'sender@example.invalid','SMTP_PASSWORD':'synthetic','MAIL_FROM':'sender@example.invalid','MAIL_TO':'a@example.invalid,b@example.invalid','SMTP_PORT':'587'}
@@ -42,7 +43,7 @@ class EmailTests(unittest.TestCase):
             send_mail(render(report()),'05.11.2026',plain_text=plain(report()))
             msg=smtp.return_value.__enter__.return_value.send_message.call_args.args[0]
             self.assertEqual(len(getaddresses(msg.get_all('To'))),2)
-            self.assertIn('Kreative Inspiration – Original ansehen',msg.get_body(preferencelist=('plain',)).get_content())
+            self.assertIn('https://www.instagram.com/p/example/',msg.get_body(preferencelist=('plain',)).get_content())
             self.assertIn('role="presentation"',msg.get_body(preferencelist=('html',)).get_content())
 
 class DailyPipelineTests(unittest.TestCase):
