@@ -15,7 +15,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 from listening import send_mail
 from email_layout import render as render_email, plain as plain_email
-from performance import assess_public_linkedin, assess as assess_performance, choose as choose_performers, evidence, adaptation as adaptation_for_diagnostics
+from performance import assess_public_linkedin, assess as assess_performance, choose as choose_performers, evidence
 from editorial import prepare as prepare_editorial, record as record_editorial
 from linkedin_public import collect as collect_linkedin, render_section as render_linkedin, select_posts as select_linkedin
 
@@ -157,7 +157,6 @@ def main():
     report['quality']['instagram_qualified_before_editorial']=sum(r.get('top_performer',False) for r in rows)
     report['quality']['linkedin_qualified_before_editorial']=sum(r.get('top_performer',False) for r in linkedin_raw)
     report['quality']['qualified_but_previously_reported']=sum(r.get('top_performer',False) and not r.get('eligible_for_report',True) for r in rows+linkedin_raw)
-    report['quality']['qualified_without_transfer']=sum(r.get('top_performer',False) and r.get('eligible_for_report',True) and not adaptation_for_diagnostics(r) for r in rows+linkedin_raw)
     report['quality']['linkedin_candidate_examples']=[{k:r.get(k) for k in ('account','url','published_at','format','interactions','performance_reason','benchmark_n','benchmark_factor','benchmark_percentile')} for r in linkedin_raw]
     report['quality']['candidate_examples']=[{k:r.get(k) for k in ('account','url','published_at','interactions','performance_reason','benchmark_n','benchmark_factor','benchmark_percentile','editorial_status')} for r in sorted(rows+linkedin_raw,key=lambda r:r.get('benchmark_factor') or 0,reverse=True)[:25]]
     if os.environ.get('GITHUB_RUN_ID'):
@@ -179,7 +178,7 @@ def main():
             for source in linkedin['sources']:
                 f.write(f'- LinkedIn `{source["account"]}`: {source["status"]}, {source["count"]} Beiträge\n')
             f.write('\nQualitätsfilter: mindestens 2,5× Median, oberste 10 %, mindestens 100 Interaktionen, mindestens 5 Vergleichsposts. Ohne Beleg kein Reporteintrag.\n')
-            f.write('\nDie Mail enthält die kompakte Auswahl mit Original-Links und Euromaster-Ideen. Quellenstatus und Auswahlgründe stehen in diagnostics.json. LinkedIn umfasst öffentlich erreichbare Beiträge; keine vollständige Plattformabdeckung.\n')
+            f.write('\nDie Mail enthält die kompakte Auswahl mit Original-Links zur kreativen Inspiration. Quellenstatus und Auswahlgründe stehen in diagnostics.json. LinkedIn umfasst öffentlich erreichbare Beiträge; keine vollständige Plattformabdeckung.\n')
     if not rows:
         print('::warning::Keine Instagram-Beiträge abrufbar. Mail enthält den Hinweis zur eingeschränkten Datengrundlage.')
     # Reports survive a mail error; cached snapshot updates happen only after successful/disabled mail.
