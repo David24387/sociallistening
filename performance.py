@@ -103,6 +103,12 @@ def adaptation(row):
             idea = f'Einen echten Vorher-nachher-Fall zu „{subject}“ dokumentieren; Bildmaterial und fachliche Aussage vor Veröffentlichung prüfen. ' + idea
         return {'pattern': label, 'idea': idea, 'basis': 'Themenbezogen aus Caption; keine Bild-/Videoanalyse und kein bewiesener Erfolgsgrund.'}
 
+    # Generic educational hooks are valid only with a concrete editorial format.
+    if has(r'fehler', r'vermeiden', r'niemals') and has(r'tipps', r'checkliste', r'anleitung'):
+        return {'pattern':'Fehler vermeiden', 'idea':'„Drei Fehler bei der Reifenlagerung“: pro Fehler eine konkrete Erklärung und eine richtige Vorgehensweise aus dem Werkstattalltag.', 'basis':'Formattransfer aus Caption; Originalinhalt nicht als gesehen ausgeben.'}
+    # Automotive posts may be worthwhile even when the caption names no narrower service.
+    if not row.get('inspiration') and has(r'reifen', r'werkstatt', r'autoglas', r'brems', r'pannen', r'fuhrpark', r'flotte', r'mobilität', r'verkehr'):
+        return {'pattern':'Automotive-Kundenfrage', 'idea':'Eine konkrete Kundenfrage aus dem Themenbereich des Originalposts auswählen und von einer Euromaster-Fachkraft anhand eines realen Beispiels beantworten lassen. Thema und Original vor Umsetzung prüfen.', 'basis':'Breiter Caption-Transfer; keine Bild-/Videoanalyse.'}
     # Do not turn a generic keyword into the same recycled tire tip.
     if has(r'award', r'auszeichnung'):
         return {'pattern':'Anerkennung mit konkreter Leistung verbinden', 'idea':'Eine echte Auszeichnung oder belegbares Kundenlob für ein Euromaster-Team zum Anlass nehmen: Leistung und beteiligte Kolleginnen und Kollegen zeigen, statt nur einen Pokal zu posten.', 'basis':'Regelbasiert aus Caption; Original prüfen.'}
